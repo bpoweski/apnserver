@@ -1,0 +1,19 @@
+require 'drb'
+
+SERVICE_URL = 'druby://localhost:22195'
+
+class TestServer
+  def doit
+    "Hello, Distributed World"
+  end
+end
+
+
+server = TestServer.new
+DRb.start_service(SERVICE_URL, server)
+
+
+Signal.trap("TERM") { DRb.stop_service }
+Signal.trap("INT")  { DRb.stop_service }
+
+DRb.thread.join # Don't exit just yet!

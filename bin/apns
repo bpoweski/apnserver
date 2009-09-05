@@ -1,0 +1,5 @@
+require 'drb'
+DRb.start_service
+obj = DRbObject.new(nil, 'druby://localhost:22195')
+# Now use obj
+puts obj.doit
