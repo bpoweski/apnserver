@@ -29,8 +29,7 @@ module ApnServer
     
     def self.valid?(payload)
       begin
-        Notification.parse(payload)        
-        true
+        Notification.parse(payload)
       rescue RuntimeError
         false
       end

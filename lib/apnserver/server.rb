@@ -1,33 +1,48 @@
+require 'socket'
+
 require 'rubygems'
 require 'eventmachine'
 require 'apnserver/notification'
 
-module ApnServer
+@queue = EM::Queue.new
+
+class ApnProxyServer < EventMachine::Connection
+  attr_accessor :queue
+  
   def post_init
-    puts "++ [] connect"
+    @address = Socket.unpack_sockaddr_in(self.get_peername)
+    puts "#{Time.now} [#{@address.last}:#{@address.first}] CONNECT"
   end
   
   def unbind
-    puts "-- [] disconnect"
+    puts "#{Time.now} [#{@address.last}:#{@address.first}] DISCONNECT"    
   end
   
   def receive_data(data)
-    puts "receive: #{data}"
+    puts "#{Time.now} [#{@address.last}:#{@address.first}] RECV - #{data}"
+
     (@buf ||= "") << data
-    if Notification.valid?(@buf)
-      puts "send valid request"
-    end
-    #      if @buf =~ /\r\n\r\n/ # all http headers received
-    #        EM.connect("10.0.0.15", 80, ProxyConnection, self, data)
-    #      end
+    # if notification = ApnServer::Notification.valid?(@buf)
+      queue.push(@buf)
+    # end
   end
+end
+
+class ApnClient < EventMachine::Connection
+  
 end
 
 
 
 EventMachine::run do
-  puts "Starting the run now: #{Time.now}"
-  #  EventMachine::add_timer 5, proc { puts "Executing timer event: #{Time.now}" }
-  #  EventMachine::add_timer( 10 ) { puts "Executing timer event: #{Time.now}" }  
-  EM.start_server "0.0.0.0", 10000, ApnServer
+  puts "Starting APN Server: #{Time.now}"
+  EM.start_server "0.0.0.0", 22195, ApnProxyServer do |s|
+    s.queue = @queue
+  end
+  
+  timer = EventMachine::PeriodicTimer.new(1) do
+    unless @queue.empty?
+      puts @queue.inspect
+    end
+  end  
 end
