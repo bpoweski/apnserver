@@ -10,8 +10,9 @@ module ApnServer
     
     def payload
       p = Hash.new
-      p[:badge] = badge if badge
-      p[:alert] = alert if alert
+      [:badge, :alert, :sound, :custom].each do |k|
+        p[k] = send(k) if send(k)        
+      end
       create_payload(p)
     end
     
@@ -28,26 +29,35 @@ module ApnServer
     
     def self.valid_request?(payload)
       begin
-        Notification.read_notification(payload)        
+        Notification.parse(payload)        
         true
       rescue RuntimeError
         false
       end
     end
     
-    def self.read_notification(p)
-      payload = p.dup
+    def self.parse(p)
+      buffer = p.dup
       notification = Notification.new
       
-      header = payload.slice!(0, 3).unpack('ccc')
+      header = buffer.slice!(0, 3).unpack('ccc')
       if header[0] != 0 || header[1] != 0 || header[2] != 32
         raise RuntimeError.new("Header of notification is invalid: #{header.inspect}")
       end
       
-      notification.device_token = payload.slice!(0, 32).unpack('a*').first
-      payload_len = payload.slice!(0, 2).unpack('cc')
-      json = payload.slice!(0, payload_len.last)
-
+      # parse token
+      notification.device_token = buffer.slice!(0, 32).unpack('a*').first
+      
+      # parse json payload
+      payload_len = buffer.slice!(0, 2).unpack('cc')
+      result = JSON.parse(buffer.slice!(0, payload_len.last))
+      
+      notification.alert = result['aps']['alert'] if result['aps'] && result['aps']['alert']
+      notification.badge = result['aps']['badge'] if result['aps'] && result['aps']['badge']
+      notification.sound = result['aps']['sound'] if result['aps'] && result['aps']['sound']
+      result.delete('aps')
+      notification.custom = result
+      
       notification
     end
   end
