@@ -52,9 +52,9 @@ module ApnServer
       payload_len = buffer.slice!(0, 2).unpack('cc')
       result = JSON.parse(buffer.slice!(0, payload_len.last))
       
-      notification.alert = result['aps']['alert'] if result['aps'] && result['aps']['alert']
-      notification.badge = result['aps']['badge'] if result['aps'] && result['aps']['badge']
-      notification.sound = result['aps']['sound'] if result['aps'] && result['aps']['sound']
+      ['alert', 'badge', 'sound'].each do |k|
+        notification.send("#{k}=", result['aps'][k]) if result['aps'] && result['aps'][k]
+      end
       result.delete('aps')
       notification.custom = result
       
