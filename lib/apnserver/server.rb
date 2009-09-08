@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'eventmachine'
+require 'apnserver/notification'
 
 module ApnServer
   
@@ -27,7 +28,10 @@ module ApnServer
   
   module ProxyServer
     def receive_data(data)
-     (@buf ||= "") << data
+      (@buf ||= "") << data
+      if Notification.valid?(@buf)
+        
+      end
 #      if @buf =~ /\r\n\r\n/ # all http headers received
 #        EM.connect("10.0.0.15", 80, ProxyConnection, self, data)
 #      end

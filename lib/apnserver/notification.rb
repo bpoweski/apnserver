@@ -27,7 +27,7 @@ module ApnServer
       [0, 0, device_token.size, device_token, 0, json.size, json].pack("ccca*cca*")
     end
     
-    def self.valid_request?(payload)
+    def self.valid?(payload)
       begin
         Notification.parse(payload)        
         true
