@@ -1,5 +1,5 @@
-require 'test_helper'
 require 'apnserver/payload'
+require 'test_helper'
 
 class NotificationTest < Test::Unit::TestCase
   include ApnServer::Payload
