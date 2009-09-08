@@ -1,3 +1,1 @@
-require 'rubygems'
-require 'eventmachine'
-require 'core'
+require 'apnserver/notification'

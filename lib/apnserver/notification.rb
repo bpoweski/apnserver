@@ -26,5 +26,29 @@ module ApnServer
       [0, 0, device_token.size, device_token, 0, json.size, json].pack("ccca*cca*")
     end
     
+    def self.valid_request?(payload)
+      begin
+        Notification.read_notification(payload)        
+        true
+      rescue RuntimeError
+        false
+      end
+    end
+    
+    def self.read_notification(p)
+      payload = p.dup
+      notification = Notification.new
+      
+      header = payload.slice!(0, 3).unpack('ccc')
+      if header[0] != 0 || header[1] != 0 || header[2] != 32
+        raise RuntimeError.new("Header of notification is invalid: #{header.inspect}")
+      end
+      
+      notification.device_token = payload.slice!(0, 32).unpack('a*').first
+      payload_len = payload.slice!(0, 2).unpack('cc')
+      json = payload.slice!(0, payload_len.last)
+
+      notification
+    end
   end
 end

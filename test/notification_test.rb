@@ -44,7 +44,20 @@ class NotificationTest < Test::Unit::TestCase
     end
   end
   
+  def test_should_recognize_valid_request
+    device_token = '12345678123456781234567812345678'
+    payload = '{"aps":{"alert":"You have not mail!"}}'
+    request = [0, 0, device_token.size, device_token, 0, payload.size, payload].pack("ccca*cca*")
+    assert Notification.valid_request?(request)
+    notification = Notification.read_notification(request)
+    assert_equal device_token, notification.device_token
+  end
   
-  
+  def test_should_not_recognize_invalid_request
+    device_token = '12345678123456781234567812345678'
+    payload = '{"aps":{"alert":"You have not mail!"}}'
+    request = [0, 0, 20, device_token, 0, payload.size, payload].pack("ccca*cca*")
+    assert !Notification.valid_request?(request)
+  end
 end
 
