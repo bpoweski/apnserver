@@ -1,5 +1,8 @@
 require 'socket'
 
+require 'rubygems'
+require 'apnserver/notification'
+
 socket = TCPSocket.new('localhost', 22195)
 socket.write('test\n')
 socket.close

@@ -4,8 +4,6 @@ require 'rubygems'
 require 'eventmachine'
 require 'apnserver/notification'
 
-@queue = EM::Queue.new
-
 class ApnProxyServer < EventMachine::Connection
   attr_accessor :queue
   
@@ -22,27 +20,29 @@ class ApnProxyServer < EventMachine::Connection
     puts "#{Time.now} [#{@address.last}:#{@address.first}] RECV - #{data}"
 
     (@buf ||= "") << data
-    # if notification = ApnServer::Notification.valid?(@buf)
-      queue.push(@buf)
-    # end
+    if notification = ApnServer::Notification.valid?(@buf)
+      queue.push(notification)
+    end
   end
 end
 
 class ApnClient < EventMachine::Connection
-  
 end
-
-
 
 EventMachine::run do
   puts "Starting APN Server: #{Time.now}"
-  EM.start_server "0.0.0.0", 22195, ApnProxyServer do |s|
-    s.queue = @queue
-  end
-  
+  queue = EM::Queue.new
+  server = EM.start_server "0.0.0.0", 22195, ApnProxyServer do |s|
+    s.queue = queue
+  end 
   timer = EventMachine::PeriodicTimer.new(1) do
-    unless @queue.empty?
-      puts @queue.inspect
+    unless queue.empty?
+      size = queue.size
+      size.times do 
+        queue.pop do |notification|
+          puts notification.inspect
+        end
+      end
     end
   end  
 end
