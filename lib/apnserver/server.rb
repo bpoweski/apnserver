@@ -18,8 +18,8 @@ class ApnProxyServer < EventMachine::Connection
   
   def receive_data(data)
     puts "#{Time.now} [#{@address.last}:#{@address.first}] RECV - #{data}"
-
-    (@buf ||= "") << data
+    
+     (@buf ||= "") << data
     if notification = ApnServer::Notification.valid?(@buf)
       queue.push(notification)
     end
@@ -27,15 +27,39 @@ class ApnProxyServer < EventMachine::Connection
 end
 
 class ApnClient < EventMachine::Connection
+  def post_init
+    puts "Starting TLS"
+    start_tls(
+      :private_key_file => $1, 
+      :cert_chain_file => $2, 
+      :verify_peer => false
+    )
+  end
+  
+  def receive_data data
+    # we won't receive anything
+  end
+  
+  def ssl_handshake_completed
+    puts get_peer_cert
+  end  
+  
+  def unbind
+    puts "#{Time.now} DISCONNECT from APNS"
+  end  
 end
 
 EventMachine::run do
   puts "Starting APN Server: #{Time.now}"
   queue = EM::Queue.new
-  server = EM.start_server "0.0.0.0", 22195, ApnProxyServer do |s|
+  
+  EM.start_server("0.0.0.0", 22195, ApnProxyServer) do |s|
     s.queue = queue
   end 
-  timer = EventMachine::PeriodicTimer.new(1) do
+  
+  client = EM.connect('localhost', 2195, ApnClient)
+  
+  EventMachine::PeriodicTimer.new(1) do
     unless queue.empty?
       size = queue.size
       size.times do 
@@ -44,5 +68,7 @@ EventMachine::run do
         end
       end
     end
-  end  
+  end
+ 
+  puts client.inspect
 end
