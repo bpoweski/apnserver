@@ -7,7 +7,8 @@ module Apnserver
 end
 
 require 'eventmachine'
-require 'apnserver/protocol'
 require 'apnserver/payload'
 require 'apnserver/notification'
+require 'apnserver/protocol'
 require 'apnserver/server'
+require 'apnserver/client'

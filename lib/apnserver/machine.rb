@@ -1,6 +1,3 @@
-require 'rubygems'
-require 'eventmachine'
-
 EventMachine::run do
   puts "Starting APN Server: #{Time.now}"
   queue = EM::Queue.new
@@ -9,7 +6,7 @@ EventMachine::run do
     s.queue = queue
   end 
   
-  client = ApnsClient.new($1, $2)
+  client = Client.new($1, $2)
   
   EventMachine::PeriodicTimer.new(1) do
     unless queue.empty?
