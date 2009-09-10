@@ -6,4 +6,8 @@ module Apnserver
   VERSION = '0.0.1'
 end
 
+require 'eventmachine'
+require 'apnserver/protocol'
+require 'apnserver/payload'
 require 'apnserver/notification'
+require 'apnserver/server'
