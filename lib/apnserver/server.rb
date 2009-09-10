@@ -1,8 +1,9 @@
-require 'socket'
-
 require 'rubygems'
 require 'eventmachine'
 require 'apnserver/notification'
+
+require 'socket'
+require 'openssl'
 
 class ApnProxyServer < EventMachine::Connection
   attr_accessor :queue
@@ -26,28 +27,45 @@ class ApnProxyServer < EventMachine::Connection
   end
 end
 
-class ApnClient < EventMachine::Connection
-  def post_init
-    puts "Starting TLS"
-    start_tls(
-      :private_key_file => $1, 
-      :cert_chain_file => $2, 
-      :verify_peer => false
-    )
+class ApnsClient
+  
+  attr_accessor :certificate, :key, :host, :port
+  
+  
+  def intialize(certificate, key, host = 'gateway.push.apple.com', port = 2195)
+    @certificate, @key, @host, @port = certificate, path, host, port
   end
   
-  def receive_data data
-    # we won't receive anything
+  def connect!
+    raise "The path to your pem file is not set." unless self.pem
+    raise "The path to your pem file does not exist!" unless File.exist?(self.pem)
+    
+    @context      = OpenSSL::SSL::SSLContext.new
+    @context.cert = OpenSSL::X509::Certificate.new(File.read(self.pem))
+    @context.key  = OpenSSL::PKey::RSA.new(File.read(self.pem), self.pass)
+ 
+    @sock         = TCPSocket.new(self.host, self.port)
+    @ssl          = OpenSSL::SSL::SSLSocket.new(@sock, @context)
+    @ssl.connect
+ 
+    return @sock, @ssl
   end
   
-  def ssl_handshake_completed
-    puts get_peer_cert
-  end  
+  def disconnect!
+    @ssl.close
+    @sock.close
+  end
   
-  def unbind
-    puts "#{Time.now} DISCONNECT from APNS"
-  end  
+  def write(bytes)
+    @ssl.write(bytes)
+  end
+  
+  def connected?
+    @ssl
+  end
+  
 end
+  
 
 EventMachine::run do
   puts "Starting APN Server: #{Time.now}"
@@ -57,18 +75,17 @@ EventMachine::run do
     s.queue = queue
   end 
   
-  client = EM.connect('localhost', 2195, ApnClient)
+  client = ApnsClient.new($1, $2)
   
   EventMachine::PeriodicTimer.new(1) do
     unless queue.empty?
       size = queue.size
       size.times do 
         queue.pop do |notification|
-          puts notification.inspect
+          client.connect! unless client.connected?
+          client.write(notification.to_bytes)
         end
       end
     end
   end
- 
-  puts client.inspect
 end

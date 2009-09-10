@@ -77,4 +77,3 @@ class NotificationTest < Test::Unit::TestCase
     end
   end
 end
-
