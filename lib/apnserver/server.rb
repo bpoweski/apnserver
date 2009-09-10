@@ -5,6 +5,6 @@ module ApnServer
   
   class ServerConnection < EventMachine::Connection
     include Protocol
-    attr_accessor :queue
+    attr_accessor :queue, :address
   end
 end

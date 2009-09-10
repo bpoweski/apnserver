@@ -2,11 +2,11 @@ EventMachine::run do
   puts "Starting APN Server: #{Time.now}"
   queue = EM::Queue.new
   
-  EM.start_server("0.0.0.0", 22195, ApnServer) do |s|
+  EM.start_server("0.0.0.0", 22195, ApnServer::ServerConnection) do |s|
     s.queue = queue
   end 
   
-  client = Client.new($1, $2)
+  client = ApnServer::Client.new($1, $2)
   
   EventMachine::PeriodicTimer.new(1) do
     unless queue.empty?
