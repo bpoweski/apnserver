@@ -1,5 +1,4 @@
-require 'apnserver/payload'
-require 'test_helper'
+require File.dirname(__FILE__) + '/test_helper.rb'
 
 class NotificationTest < Test::Unit::TestCase
   include ApnServer::Payload

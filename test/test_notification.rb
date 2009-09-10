@@ -1,5 +1,4 @@
-require 'test_helper'
-require 'apnserver/notification'
+require File.dirname(__FILE__) + '/test_helper.rb'
 
 class NotificationTest < Test::Unit::TestCase
   include ApnServer
