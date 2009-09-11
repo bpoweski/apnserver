@@ -1,19 +1,43 @@
-require 'drb'
+require 'getoptlong'
+require 'rubygems'
+require 'apnserver'
 
-SERVICE_URL = 'druby://localhost:22195'
+opts = GetoptLong.new(
+  ["--bind-address", "-b", GetoptLong::REQUIRED_ARGUMENT],
+  ["--proxy-port", "-P", GetoptLong::REQUIRED_ARGUMENT],
+  ["--server", "-s", GetoptLong::REQUIRED_ARGUMENT],
+  ["--port", "-p", GetoptLong::REQUIRED_ARGUMENT],
+  ["--certificate", "-c", GetoptLong::REQUIRED_ARGUMENT],
+  ["--key", "-k", GetoptLong::REQUIRED_ARGUMENT],
+  ["--help", "-h", GetoptLong::NO_ARGUMENT]
+)
 
-class TestServer
-  def doit
-    "Hello, Distributed World"
+bind_address = '0.0.0.0'
+proxy_port = 22195
+server = 'gateway.push.apple.com'
+port = 2295
+certificate = nil
+key = nil
+
+opts.each do |opt, arg|
+  case opt
+  when '--help'
+	# TODO add help
+  when '--bind-address'
+    bind_address = arg
+  when '--proxy-port'
+	proxy_port = arg.to_i
+  when '--server'
+  	server = arg
+  when '--port'
+  	port = arg
+  when '--certificate'
+    certificate = arg
+  when '--key'
+  	key = arg
   end
 end
 
 
-server = TestServer.new
-DRb.start_service(SERVICE_URL, server)
-
-
-Signal.trap("TERM") { DRb.stop_service }
-Signal.trap("INT")  { DRb.stop_service }
-
-DRb.thread.join # Don't exit just yet!
+server = ApnServer::Server.new(certificate, key, bind_address, port)
+server.start!

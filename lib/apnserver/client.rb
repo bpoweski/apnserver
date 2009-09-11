@@ -1,9 +1,12 @@
+require 'openssl'
+require 'socket'
+
 module ApnServer
   class Client
     
     attr_accessor :certificate, :key, :host, :port, :password
     
-    def initialize(certificate, key, host = 'gateway.push.apple.com', port = 2195, pass = nil)
+    def initialize(certificate, key, host = 'gateway.push.apple.com', port = 2295, pass = nil)
       @certificate, @key, @host, @port = certificate, key, host, port
       @password = pass
     end
@@ -18,7 +21,7 @@ module ApnServer
       
       @sock         = TCPSocket.new(self.host, self.port)
       @ssl          = OpenSSL::SSL::SSLSocket.new(@sock, @context)
-      @ssl.connect
+      puts @ssl.connect.inspect
       
       return @sock, @ssl
     end
@@ -29,10 +32,12 @@ module ApnServer
     end
     
     def write(bytes)
+      puts "#{Time.now} [#{host}:#{port}] sending #{bytes}"
       @ssl.write(bytes)
     end
     
     def connected?
+      puts @ssl.inspect
       @ssl
     end
     

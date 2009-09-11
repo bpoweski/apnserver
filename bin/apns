@@ -4,5 +4,6 @@ require 'rubygems'
 require 'apnserver/notification'
 
 socket = TCPSocket.new('localhost', 22195)
-socket.write('test\n')
+token = '12345678123456781234567812345678'
+socket.write("\0\0 #{token}\0#{22.chr}{\"aps\":{\"alert\":\"Hi\"}}")
 socket.close
