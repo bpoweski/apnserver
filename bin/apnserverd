@@ -2,6 +2,15 @@ require 'getoptlong'
 require 'rubygems'
 require 'apnserver'
 
+def usage
+  puts "Usage: apnserverd [switches] --pem <path>"
+  puts " --bind-address [0.0.0.0]             bind address of proxy"
+  puts " --proxy-port [22195]                 port proxy listens on"
+  puts " --server <gateway.push.apple.com>    the apn server to send messages to"
+  puts " --port <2195>                        the port of the apn server"
+  puts " --help                               this message"
+end
+
 opts = GetoptLong.new(
   ["--bind-address", "-b", GetoptLong::REQUIRED_ARGUMENT],
   ["--proxy-port", "-P", GetoptLong::REQUIRED_ARGUMENT],
@@ -20,12 +29,7 @@ pem = nil
 opts.each do |opt, arg|
   case opt
   when '--help'
-    puts "Usage: apnserverd [switches] --pem <path>"
-	  puts " --bind-address [0.0.0.0]             bind address of proxy"
-	  puts " --proxy-port [22195]                 port proxy listens on"
-	  puts " --server <gateway.push.apple.com>    the apn server to send messages to"
-	  puts " --port <2195>                        the port of the apn server"
-	  puts " --help                               this message"
+    usage
   when '--bind-address'
     bind_address = arg
   when '--proxy-port'
@@ -39,7 +43,9 @@ opts.each do |opt, arg|
   end
 end
 
-unless pem.nil?
+if pem.nil?
+  usage
+else
   server = ApnServer::Server.new(pem, bind_address, proxy_port)
   server.start!
 end
