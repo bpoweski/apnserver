@@ -1,0 +1,10 @@
+require 'getoptlong'
+require 'rubygems'
+require 'apnserver'
+require 'base64'
+
+client = ApnServer::Client.new(ARGV.first)
+client.connect!
+
+token = Base64.decode64(ARGV.last)
+client.write("\0\0 #{token}\0#{22.chr}{\"aps\":{\"alert\":\"Hi\"}}")

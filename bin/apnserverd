@@ -7,8 +7,7 @@ opts = GetoptLong.new(
   ["--proxy-port", "-P", GetoptLong::REQUIRED_ARGUMENT],
   ["--server", "-s", GetoptLong::REQUIRED_ARGUMENT],
   ["--port", "-p", GetoptLong::REQUIRED_ARGUMENT],
-  ["--certificate", "-c", GetoptLong::REQUIRED_ARGUMENT],
-  ["--key", "-k", GetoptLong::REQUIRED_ARGUMENT],
+  ["--pem", "-c", GetoptLong::REQUIRED_ARGUMENT],
   ["--help", "-h", GetoptLong::NO_ARGUMENT]
 )
 
@@ -16,13 +15,17 @@ bind_address = '0.0.0.0'
 proxy_port = 22195
 server = 'gateway.push.apple.com'
 port = 2295
-certificate = nil
-key = nil
+pem = nil
 
 opts.each do |opt, arg|
   case opt
   when '--help'
-	# TODO add help
+    puts "Usage: apnserverd [switches] --pem <path>"
+	  puts " --bind-address [0.0.0.0]             bind address of proxy"
+	  puts " --proxy-port [22195]                 port proxy listens on"
+	  puts " --server <gateway.push.apple.com>    the apn server to send messages to"
+	  puts " --port <2195>                        the port of the apn server"
+	  puts " --help                               this message"
   when '--bind-address'
     bind_address = arg
   when '--proxy-port'
@@ -31,13 +34,12 @@ opts.each do |opt, arg|
   	server = arg
   when '--port'
   	port = arg
-  when '--certificate'
-    certificate = arg
-  when '--key'
-  	key = arg
+  when '--pem'
+    pem = arg
   end
 end
 
-
-server = ApnServer::Server.new(certificate, key, bind_address, port)
-server.start!
+unless pem.nil?
+  server = ApnServer::Server.new(pem, bind_address, proxy_port)
+  server.start!
+end
