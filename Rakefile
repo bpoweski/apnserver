@@ -1,25 +1,26 @@
 require 'rubygems'
-gem 'hoe', '>= 2.1.0'
-require 'hoe'
-require 'fileutils'
-require './lib/apnserver'
 
-Hoe.plugin :newgem
-# Hoe.plugin :website
-# Hoe.plugin :cucumberfeatures
-
-# Generate all the Rake tasks
-# Run 'rake -T' to see list of generated tasks (from gem root directory)
-Hoe.spec 'apnserver' do
-  developer 'Ben Poweski', 'bpoweski@3factors.com'
-  rubyforge_name       = self.name # TODO this is default value
-  # self.extra_deps         = [['activesupport','>= 2.0.2']]
-
+begin
+  require 'jeweler'
+  Jeweler::Tasks.new do |gemspec|
+    gemspec.name = "apnserver"
+    gemspec.summary = "Apple Push Notification Server"
+    gemspec.description = "A toolkit for proxying and sending Apple Push Notifications"
+    gemspec.email = "bpoweski@3factors.com"
+    gemspec.homepage = "http://github.com/bpoweski/apnserver"
+    gemspec.authors = ["Ben Poweski"]
+  end
+rescue LoadError
+  puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
 end
 
-require 'newgem/tasks'
-Dir['tasks/**/*.rake'].each { |t| load t }
+require 'rake/testtask'
+Rake::TestTask.new(:test) do |test|
+  test.test_files = FileList.new('test/**/test_*.rb') do |list|
+    list.exclude 'test/test_helper.rb'
+  end
+  test.libs << 'test'
+  test.verbose = true
+end
 
-# TODO - want other tests/tasks run by default? Add them to the list
-# remove_task :default
-# task :default => [:spec, :features]
+task :default => [:test]

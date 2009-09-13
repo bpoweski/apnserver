@@ -6,6 +6,8 @@ module Apnserver
   VERSION = '0.0.1'
 end
 
+require 'rubygems'
+gem 'eventmachine', '>= 0.12.8'
 require 'eventmachine'
 require 'apnserver/payload'
 require 'apnserver/notification'
