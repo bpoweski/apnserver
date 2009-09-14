@@ -9,6 +9,8 @@ begin
     gemspec.email = "bpoweski@3factors.com"
     gemspec.homepage = "http://github.com/bpoweski/apnserver"
     gemspec.authors = ["Ben Poweski"]
+    gemspec.add_dependency 'eventmachine'
+    gemspec.add_dependency 'daemons'
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"

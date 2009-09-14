@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 require 'socket'
 require 'base64'
 require 'rubygems'
