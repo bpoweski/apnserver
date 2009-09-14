@@ -10,6 +10,7 @@ begin
     gemspec.homepage = "http://github.com/bpoweski/apnserver"
     gemspec.authors = ["Ben Poweski"]
     gemspec.add_dependency 'eventmachine'
+    gemspec.files = FileList['lib/**/*.rb', 'bin/*', '[A-Z]*', 'test/**/*'].to_a
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
