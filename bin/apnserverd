@@ -2,7 +2,6 @@
 require 'getoptlong'
 require 'rubygems'
 require 'apnserver'
-require 'daemons'
 
 def usage
   puts "Usage: apnserverd [switches] --pem <path>"
@@ -48,9 +47,6 @@ end
 if pem.nil?
   usage
 else
-  # Become a daemon
-  Daemons.daemonize
-
   server = ApnServer::Server.new(pem, bind_address, proxy_port)
   server.start!
 end
