@@ -51,7 +51,13 @@ if pem.nil?
   usage
   exit 1
 else
-  Daemons.daemonize
+  Daemonize.daemonize('apnserverd', 'apnserverd')
+  @pid_file = '/var/run/apnserverd.pid'
+  open(@pid_file,"w") {|f| f.write(Process.pid) } # copied from mongrel
+  open(@pid_file,"w") do |f|
+	  f.write(Process.pid)
+      File.chmod(0644, @pid_file)
+  end 
   server = ApnServer::Server.new(pem, bind_address, proxy_port)
   server.start!
 end

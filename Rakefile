@@ -10,6 +10,7 @@ begin
     gemspec.homepage = "http://github.com/bpoweski/apnserver"
     gemspec.authors = ["Ben Poweski"]
     gemspec.add_dependency 'eventmachine'
+    gemspec.add_dependency 'daemons'
     gemspec.files = FileList['lib/**/*.rb', 'bin/*', '[A-Z]*', 'test/**/*'].to_a
   end
 rescue LoadError
