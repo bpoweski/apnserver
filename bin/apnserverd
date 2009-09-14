@@ -3,6 +3,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 
 require 'getoptlong'
 require 'rubygems'
+require 'daemons'
 require 'apnserver'
 
 def usage
@@ -48,7 +49,9 @@ end
 
 if pem.nil?
   usage
+  exit 1
 else
+  Daemons.daemonize
   server = ApnServer::Server.new(pem, bind_address, proxy_port)
   server.start!
 end
