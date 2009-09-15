@@ -4,7 +4,8 @@
 
 == DESCRIPTION:
 
-FIX (describe your package)
+apnserver is a server and set of command line programs to send push notifications to the iPhone.
+
 
 == FEATURES/PROBLEMS:
 
@@ -12,7 +13,30 @@ FIX (describe your package)
 
 == SYNOPSIS:
 
-  FIX (code sample of usage)
+Usagge: apnserverd [options] --pem /path/to/pem
+   
+  <tt>--bind-address</tt> <i>bind address (defaults to 0.0.0.0)</i>::
+	bind address of the server daemon
+	
+  <tt>--proxy-port</tt> <i>port the daemon will listen on</i>
+    defaults to 22195
+  
+  <tt>--server</tt> <i>server</i>::
+  	APN Server (defaults to gateway.push.apple.com)
+  
+  <tt>--port</tt> <i>port of the APN Server</i>::
+    APN server port (defaults to 2195)
+  
+  <tt>--pem</tt> <i>pem file path</i>::
+  	The PEM encoded private key and certificate.
+  	To export a PEM ecoded file execute 
+  	<i># openssl pkcs12 -in cert.p12 -out cert.pem -nodes -clcerts</i>
+ 
+  <tt>--help</tt>::
+    usage message  
+  
+  <tt>--daemon</tt>::
+    Runs process as daemon, not available on Windows
 
 == REQUIREMENTS:
 
@@ -20,7 +44,10 @@ FIX (describe your package)
 
 == INSTALL:
 
-* FIX (sudo gem install, anything else)
+To install apnserver execute the following gem command:
+
+  $ gem install bpoweski-apnserver --source http://gems.github.com
+  
 
 == LICENSE:
 

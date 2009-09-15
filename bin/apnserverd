@@ -38,7 +38,7 @@ opts = GetoptLong.new(
 bind_address = '0.0.0.0'
 proxy_port = 22195
 host = 'gateway.push.apple.com'
-port = 2295
+port = 2195
 pem = nil
 daemon = false
 
