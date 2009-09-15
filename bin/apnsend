@@ -7,7 +7,6 @@ require 'apnserver'
 require 'base64'
 require 'socket'
 
-
 def usage
   puts "Usage: apnsend [switches] (--b64-token | --hex-token) <token>"
   puts " --server <localhost>                 the apn server defaults to a locally running apnserverd"
@@ -74,9 +73,9 @@ if token.nil?
 end
   
 if pem.nil?
-  @client = TCPSocket.new(server, port)
+  @client = TCPSocket.new(server || 'localhost', port || 22195)
 else
-  @client = ApnServer::Client.new(pem, server, port)
+  @client = ApnServer::Client.new(pem, server || 'gateway.push.apple.com', port || 2195)
 end
   
 @client.write(notification.to_bytes)
