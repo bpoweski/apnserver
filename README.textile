@@ -71,11 +71,11 @@ h2. Installation
 
 To install apnserver execute the following gem command:
 
-<code>
 <pre>
+<code>
   $ gem install bpoweski-apnserver --source http://gems.github.com
-</pre>
 </code>
+</pre>
   
 
 h2. License
