@@ -17,9 +17,7 @@ Gem::Specification.new do |s|
     "README.rdoc"
   ]
   s.files = [
-    "History.txt",
-     "Manifest.txt",
-     "README.rdoc",
+    "README.rdoc",
      "Rakefile",
      "VERSION",
      "apnserver.gemspec",
