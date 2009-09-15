@@ -5,9 +5,80 @@ require 'getoptlong'
 require 'rubygems'
 require 'apnserver'
 require 'base64'
+require 'socket'
 
-client = ApnServer::Client.new(ARGV.first)
-client.connect!
 
-token = Base64.decode64(ARGV.last)
-client.write("\0\0 #{token}\0#{22.chr}{\"aps\":{\"alert\":\"Hi\"}}")
+def usage
+  puts "Usage: apnsend [switches] (--b64-token | --hex-token) <token>"
+  puts " --server <localhost>                 the apn server defaults to a locally running apnserverd"
+  puts " --port <2195>                        the port of the apn server"
+  puts " --pem <path>                         the path to the pem file, if a pem is supplied the server defaults to gateway.push.apple.com:2195"
+  puts " --alert <message>                    the message to send"
+  puts " --sound <default>                    the sound to play, defaults to 'default'"
+  puts " --badge <number>                     the badge number"
+  puts " --custom <json string>               a custom json string to be added to the main object"  
+  puts " --b64-token <token>                  a base 64 encoded device token"
+  puts " --hex-token <token>                  a hex encoded device token"  
+  puts " --help                               this message"
+end
+
+opts = GetoptLong.new(
+  ["--server", "-s", GetoptLong::REQUIRED_ARGUMENT],
+  ["--port", "-p", GetoptLong::REQUIRED_ARGUMENT],
+  ["--pem", "-c", GetoptLong::REQUIRED_ARGUMENT],
+  ["--alert", "-a", GetoptLong::REQUIRED_ARGUMENT],
+  ["--sound", "-S", GetoptLong::REQUIRED_ARGUMENT],
+  ["--badge", "-b", GetoptLong::REQUIRED_ARGUMENT],
+  ["--custom", "-j", GetoptLong::REQUIRED_ARGUMENT],  
+  ["--b64-token", "-B", GetoptLong::REQUIRED_ARGUMENT],
+  ["--hex-token", "-H", GetoptLong::REQUIRED_ARGUMENT],
+  ["--help", "-h", GetoptLong::NO_ARGUMENT]
+)
+
+port = nil
+server = nil
+notification = ApnServer::Notification.new
+token = nil
+pem = nil
+
+opts.each do |opt, arg|
+  case opt
+  when '--help'
+    usage
+    exit
+  when '--server'
+    server = arg
+  when '--port'
+    port = arg
+  when '--pem'
+    pem = arg
+  when '--alert'
+    notification.alert = arg
+  when '--sound'
+    notification.sound = arg
+  when '--badge'
+    notification.badge = arg
+  when '--custom'
+    notification.custom = arg
+  when '--b64-token'
+    token = Base64::decode64(arg)
+  when '--hex-token'
+    token = arg.unpack('H*')
+  end
+end
+
+
+if token.nil?
+  usage  
+  exit
+end
+  
+if pem.nil?
+  @client = TCPSocket.new(server, port)
+else
+  @client = ApnServer::Client.new(pem, server, port)
+end
+  
+@client.write(notification.to_bytes)
+
+
