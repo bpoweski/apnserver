@@ -5,14 +5,14 @@
 
 Gem::Specification.new do |s|
   s.name = %q{apnserver}
-  s.version = "0.0.6"
+  s.version = "0.0.7"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ben Poweski"]
-  s.date = %q{2009-09-14}
+  s.date = %q{2009-09-15}
   s.description = %q{A toolkit for proxying and sending Apple Push Notifications}
   s.email = %q{bpoweski@3factors.com}
-  s.executables = ["apns", "apnsend", "apnserverd"]
+  s.executables = ["apnsend", "apnserverd"]
   s.extra_rdoc_files = [
     "README.rdoc"
   ]
@@ -23,7 +23,6 @@ Gem::Specification.new do |s|
      "Rakefile",
      "VERSION",
      "apnserver.gemspec",
-     "bin/apns",
      "bin/apnsend",
      "bin/apnserverd",
      "lib/apnserver.rb",
