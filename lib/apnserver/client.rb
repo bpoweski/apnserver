@@ -18,7 +18,7 @@ module ApnServer
       @context.cert = OpenSSL::X509::Certificate.new(File.read(self.pem))
       @context.key  = OpenSSL::PKey::RSA.new(File.read(self.pem), self.password)
       
-      @sock         = TCPSocket.new(self.host, self.port)
+      @sock         = TCPSocket.new(self.host, self.port.to_i)
       @ssl          = OpenSSL::SSL::SSLSocket.new(@sock, @context)
       @ssl.connect
       

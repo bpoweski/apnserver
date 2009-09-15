@@ -15,20 +15,32 @@ def usage
   puts " --help                               this message"
 end
 
+def daemonize
+  Daemonize.daemonize('apnserverd', 'apnserverd')
+  @pid_file = '/var/run/apnserverd.pid'
+  open(@pid_file,"w") {|f| f.write(Process.pid) } # copied from mongrel
+  open(@pid_file,"w") do |f|
+    f.write(Process.pid)
+    File.chmod(0644, @pid_file)
+  end 
+end
+
 opts = GetoptLong.new(
   ["--bind-address", "-b", GetoptLong::REQUIRED_ARGUMENT],
   ["--proxy-port", "-P", GetoptLong::REQUIRED_ARGUMENT],
   ["--server", "-s", GetoptLong::REQUIRED_ARGUMENT],
   ["--port", "-p", GetoptLong::REQUIRED_ARGUMENT],
   ["--pem", "-c", GetoptLong::REQUIRED_ARGUMENT],
-  ["--help", "-h", GetoptLong::NO_ARGUMENT]
+  ["--help", "-h", GetoptLong::NO_ARGUMENT],
+  ["--daemon", "-d", GetoptLong::NO_ARGUMENT]
 )
 
 bind_address = '0.0.0.0'
 proxy_port = 22195
-server = 'gateway.push.apple.com'
+host = 'gateway.push.apple.com'
 port = 2295
 pem = nil
+daemon = false
 
 opts.each do |opt, arg|
   case opt
@@ -37,13 +49,15 @@ opts.each do |opt, arg|
   when '--bind-address'
     bind_address = arg
   when '--proxy-port'
-	proxy_port = arg.to_i
+    proxy_port = arg.to_i
   when '--server'
-  	server = arg
+  	host = arg
   when '--port'
-  	port = arg
+  	port = arg.to_i
   when '--pem'
     pem = arg
+  when '--daemon'
+    daemon = true
   end
 end
 
@@ -51,13 +65,9 @@ if pem.nil?
   usage
   exit 1
 else
-  Daemonize.daemonize('apnserverd', 'apnserverd')
-  @pid_file = '/var/run/apnserverd.pid'
-  open(@pid_file,"w") {|f| f.write(Process.pid) } # copied from mongrel
-  open(@pid_file,"w") do |f|
-	  f.write(Process.pid)
-      File.chmod(0644, @pid_file)
-  end 
+  daemonize if daemon
   server = ApnServer::Server.new(pem, bind_address, proxy_port)
+  server.client.host = host
+  server.client.port = port
   server.start!
 end

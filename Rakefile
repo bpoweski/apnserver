@@ -11,6 +11,7 @@ begin
     gemspec.authors = ["Ben Poweski"]
     gemspec.add_dependency 'eventmachine'
     gemspec.add_dependency 'daemons'
+    gemspec.add_dependency 'json'
     gemspec.files = FileList['lib/**/*.rb', 'bin/*', '[A-Z]*', 'test/**/*'].to_a
   end
 rescue LoadError

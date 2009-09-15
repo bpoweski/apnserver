@@ -37,7 +37,6 @@ opts = GetoptLong.new(
 port = nil
 server = nil
 notification = ApnServer::Notification.new
-token = nil
 pem = nil
 
 opts.each do |opt, arg|
@@ -60,24 +59,26 @@ opts.each do |opt, arg|
   when '--custom'
     notification.custom = arg
   when '--b64-token'
-    token = Base64::decode64(arg)
+    notification.device_token = Base64::decode64(arg)
   when '--hex-token'
-    token = arg.unpack('H*')
+    notification.device_token  = arg.unpack('H*')
   end
 end
 
 
-if token.nil?
+if notification.device_token.nil?
   usage  
   exit
 end
   
 if pem.nil?
   @client = TCPSocket.new(server || 'localhost', port || 22195)
+  @client.write(notification.to_bytes)  
 else
   @client = ApnServer::Client.new(pem, server || 'gateway.push.apple.com', port || 2195)
+  @client.connect!
+  @client.write(notification)
 end
   
-@client.write(notification.to_bytes)
 
 
