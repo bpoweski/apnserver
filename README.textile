@@ -1,22 +1,22 @@
-h1. apnserver
+h1. Apple Push Notification Server Toolkit
 
 * http://github.com/bpoweski/apnserver
 
-h2. DESCRIPTION:
+h2. Description
 
 apnserver is a server and set of command line programs to send push notifications to the iPhone.
+Apple recomends to maintain an open connection to the push notification service and refrain from 
+opening up and tearing down SSL connections reapeated.  To solve this problem an intermediate 
+network server is introduced that queues are requests to the APN service and sends them via a 
+persistent connection.
 
 
-h2. FEATURES/PROBLEMS:
+h2. APN Server Daemon
 
-* FIX (list of features or problems)
-
-h2. SYNOPSIS:
-
-Usagge: apnserverd [options] --pem /path/to/pem
    
 <pre>
   <code>
+Usage: apnserverd [options] --pem /path/to/pem
   --bind-address bind address (defaults to 0.0.0.0)</i>::
 	bind address of the server daemon
 	
@@ -43,19 +43,42 @@ Usagge: apnserverd [options] --pem /path/to/pem
   </code>
 </pre>
 
+h2. APN Server Client
 
-h2. INSTALL:
+With the APN server client script you can send push notifications directly to 
+Apple's APN server over an SSL connection or to the above daemon using a plain socket.
+To send a notification to Apple's APN server using SSL the *--pem* option must be used.
+
+<pre>
+  <code>
+Usage: apnsend [switches] (--b64-token | --hex-token) <token>
+  --server <localhost>                 the apn server defaults to a locally running apnserverd
+  --port <2195>                        the port of the apn server
+  --pem <path>                         the path to the pem file, if a pem is supplied the server 
+                                       defaults to gateway.push.apple.com:2195
+  --alert <message>                    the message to send"
+  --sound <default>                    the sound to play, defaults to 'default'
+  --badge <number>                     the badge number
+  --custom <json string>               a custom json string to be added to the main object
+  --b64-token <token>                  a base 64 encoded device token
+  --hex-token <token>                  a hex encoded device token
+  --help                               this message
+  </code>
+</pre>
+
+
+h2. Installation
 
 To install apnserver execute the following gem command:
 
 <code>
-</pre>
+<pre>
   $ gem install bpoweski-apnserver --source http://gems.github.com
 </pre>
 </code>
   
 
-h2. LICENSE:
+h2. License
 
 (The MIT License)
 
