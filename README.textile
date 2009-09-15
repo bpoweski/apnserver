@@ -17,7 +17,7 @@ h2. APN Server Daemon
 <pre>
   <code>
 Usage: apnserverd [options] --pem /path/to/pem
-  --bind-address bind address (defaults to 0.0.0.0)</i>::
+  --bind-address bind address (defaults to 0.0.0.0)
 	bind address of the server daemon
 	
   --proxy-port port 
