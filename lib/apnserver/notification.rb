@@ -3,10 +3,18 @@ require 'json'
 
 module ApnServer
   
+  class Config
+    class << self
+      attr_accessor :host, :port, :pem, :password
+    end
+  end
+  
+  
   class Notification
     include ApnServer::Payload
     
     attr_accessor :device_token, :alert, :badge, :sound, :custom
+    
     
     def payload
       p = Hash.new
@@ -20,6 +28,17 @@ module ApnServer
       p = JSON.generate(payload)
       raise PayloadInvalid.new("Payload of #{p.size} is longer than 256") if p.size > 256
       p
+    end
+    
+    def push
+      if Config.pem.nil?
+        socket = TCPSocket.new(Config.host || 'localhost', Config.port.to_i || 22195)
+        socket.write(notification.to_bytes)  
+      else
+        client = ApnServer::Client.new(Config.pem, Config.host || 'gateway.push.apple.com', Config.port.to_i || 2195)
+        client.connect!
+        client.write(notification)
+      end      
     end
     
     def to_bytes

@@ -34,10 +34,7 @@ opts = GetoptLong.new(
   ["--help", "-h", GetoptLong::NO_ARGUMENT]
 )
 
-port = nil
-server = nil
 notification = ApnServer::Notification.new
-pem = nil
 
 opts.each do |opt, arg|
   case opt
@@ -45,11 +42,11 @@ opts.each do |opt, arg|
     usage
     exit
   when '--server'
-    server = arg
+    ApnServer::Config.host = arg
   when '--port'
-    port = arg
+    ApnServer::Config.port = arg.to_i
   when '--pem'
-    pem = arg
+    ApnServer::Config.pem = arg
   when '--alert'
     notification.alert = arg
   when '--sound'
@@ -65,20 +62,9 @@ opts.each do |opt, arg|
   end
 end
 
-
 if notification.device_token.nil?
   usage  
   exit
-end
-  
-if pem.nil?
-  @client = TCPSocket.new(server || 'localhost', port || 22195)
-  @client.write(notification.to_bytes)  
 else
-  @client = ApnServer::Client.new(pem, server || 'gateway.push.apple.com', port || 2195)
-  @client.connect!
-  @client.write(notification)
+  notification.push
 end
-  
-
-

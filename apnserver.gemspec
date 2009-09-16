@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{apnserver}
-  s.version = "0.0.9"
+  s.version = "0.0.10"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ben Poweski"]
-  s.date = %q{2009-09-15}
+  s.date = %q{2009-09-16}
   s.description = %q{A toolkit for proxying and sending Apple Push Notifications}
   s.email = %q{bpoweski@3factors.com}
   s.executables = ["apnsend", "apnserverd"]
@@ -28,6 +28,7 @@ Gem::Specification.new do |s|
      "lib/apnserver/notification.rb",
      "lib/apnserver/payload.rb",
      "lib/apnserver/protocol.rb",
+     "lib/apnserver/sender.rb",
      "lib/apnserver/server.rb",
      "lib/apnserver/server_connection.rb",
      "test/test_client.rb",
