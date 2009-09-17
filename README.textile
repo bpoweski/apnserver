@@ -74,9 +74,9 @@ To send a base64 encoded push notification via the command line execute the foll
 
 <pre>
   <code>
-    $ apnsend --server gateway.push.apple.com --port 2195 --pem key.pem \
-       --b64-token j92f12jh8lqcAwcOVeSIrsBxibaJ0xyCi8/AkmzNlk8= --sound default \
-       --alert Hello
+  $ apnsend --server gateway.push.apple.com --port 2195 --pem key.pem \
+     --b64-token j92f12jh8lqcAwcOVeSIrsBxibaJ0xyCi8/AkmzNlk8= --sound default \
+     --alert Hello
   </code>
 </pre>
 
@@ -86,9 +86,9 @@ To configure the client to send to the local apnserverd process configure the Ap
 
 <pre>
   <code>
-  	# configured for a using the apnserverd proxy
-	ApnServer::Config.host = 'localhost'
-    ApnServer::Config.port = 22195
+  # configured for a using the apnserverd proxy
+  ApnServer::Config.host = 'localhost'
+  ApnServer::Config.port = 22195
   </code>
 </pre>
 
@@ -96,9 +96,9 @@ To configure the client to send directly to Apple's push notification server, by
 
 <pre>
   <code>
-    ApnServer::Config.pem = '/path/to/pem'
-	ApnServer::Config.host = 'gateway.push.apple.com'
-    ApnServer::Config.port = 2195
+  ApnServer::Config.pem = '/path/to/pem'
+  ApnServer::Config.host = 'gateway.push.apple.com'
+  ApnServer::Config.port = 2195
   </code>
 </pre>
 
@@ -106,14 +106,14 @@ Finally within we can send a push notification using the following code
 
 <pre>
   <code>
-    notification = ApnServer::Notification.new
-    notification.device_token = Base64.decode64(apns_token) # if base64 encoded
-    notification.alert = message
-    notification.badge = 1
-    notification.sound = 'default'
-    notification.push
+  notification = ApnServer::Notification.new
+  notification.device_token = Base64.decode64(apns_token) # if base64 encoded
+  notification.alert = message
+  notification.badge = 1
+  notification.sound = 'default'
+  notification.push
   </code>
-<pre>
+</pre>
 
 
 h2. Installation
