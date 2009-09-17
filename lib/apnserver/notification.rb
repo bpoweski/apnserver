@@ -33,11 +33,11 @@ module ApnServer
     def push
       if Config.pem.nil?
         socket = TCPSocket.new(Config.host || 'localhost', Config.port.to_i || 22195)
-        socket.write(notification.to_bytes)  
+        socket.write(to_bytes)  
       else
         client = ApnServer::Client.new(Config.pem, Config.host || 'gateway.push.apple.com', Config.port.to_i || 2195)
         client.connect!
-        client.write(notification)
+        client.write(self)
       end      
     end
     
