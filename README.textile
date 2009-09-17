@@ -132,7 +132,7 @@ Adding apnserver to your Rails application
   <code>
   config.gem "bpoweski-apnserver", :lib => 'apnserver', :source => "http://gems.github.com"
   </code>
-<pre>
+</pre>
 
 h2. License
 
