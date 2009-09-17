@@ -1,3 +1,4 @@
+require 'logger'
 require 'eventmachine'
 require 'apnserver/payload'
 require 'apnserver/notification'

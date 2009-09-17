@@ -31,7 +31,7 @@ module ApnServer
     end
     
     def write(notification)
-      puts "#{Time.now} [#{host}:#{port}] sending #{notification.alert}"
+      $logger.info "[#{host}:#{port}] Device: #{notification.device_token.unpack('H*')} sending #{notification.json_payload}"
       @ssl.write(notification.to_bytes)
     end
     

@@ -1,12 +1,16 @@
 #!/usr/bin/env ruby
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 
+require 'logger'
 require 'getoptlong'
 require 'rubygems'
 gem 'bpoweski-apnserver'
 require 'apnserver'
 require 'base64'
 require 'socket'
+
+$logger = Logger.new(STDOUT)
+
 
 def usage
   puts "Usage: apnsend [switches] (--b64-token | --hex-token) <token>"
