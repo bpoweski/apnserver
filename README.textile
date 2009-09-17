@@ -125,7 +125,14 @@ To install apnserver execute the following gem command:
   $ gem install bpoweski-apnserver --source http://gems.github.com
 </code>
 </pre>
-  
+
+Adding apnserver to your Rails application
+
+<pre>
+  <code>
+  config.gem "bpoweski-apnserver", :lib => 'apnserver', :source => "http://gems.github.com"
+  </code>
+<pre>
 
 h2. License
 
