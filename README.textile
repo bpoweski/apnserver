@@ -10,9 +10,13 @@ opening up and tearing down SSL connections reapeated.  To solve this problem an
 network server is introduced that queues are requests to the APN service and sends them via a 
 persistent connection.
 
+h2. TODO
+ 
+ * Implement feedback service mechanism
+ * Investigate possible badge number issue
+ * Implement a robust logging mechanism for transactions
 
 h2. APN Server Daemon
-
    
 <pre>
   <code>
@@ -65,6 +69,51 @@ Usage: apnsend [switches] (--b64-token | --hex-token) <token>
   --help                               this message
   </code>
 </pre>
+
+To send a base64 encoded push notification via the command line execute the following:
+
+<pre>
+  <code>
+    $ apnsend --server gateway.push.apple.com --port 2195 --pem key.pem \
+       --b64-token j92f12jh8lqcAwcOVeSIrsBxibaJ0xyCi8/AkmzNlk8= --sound default \
+       --alert Hello
+  </code>
+</pre>
+
+h2. Sending Notifications from Ruby
+
+To configure the client to send to the local apnserverd process configure the ApnServer client with the following.
+
+<pre>
+  <code>
+  	# configured for a using the apnserverd proxy
+	ApnServer::Config.host = 'localhost'
+    ApnServer::Config.port = 22195
+  </code>
+</pre>
+
+To configure the client to send directly to Apple's push notification server, bypassing the apnserverd process configure the following.
+
+<pre>
+  <code>
+    ApnServer::Config.pem = '/path/to/pem'
+	ApnServer::Config.host = 'gateway.push.apple.com'
+    ApnServer::Config.port = 2195
+  </code>
+</pre>
+
+Finally within we can send a push notification using the following code
+
+<pre>
+  <code>
+    notification = ApnServer::Notification.new
+    notification.device_token = Base64.decode64(apns_token) # if base64 encoded
+    notification.alert = message
+    notification.badge = 1
+    notification.sound = 'default'
+    notification.push
+  </code>
+<pre>
 
 
 h2. Installation
