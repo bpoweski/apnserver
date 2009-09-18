@@ -4,13 +4,6 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'getoptlong'
 require 'rubygems'
 require 'daemons'
-
-begin
-  gem 'apnserver'
-rescue Gem::LoadError
-  gem 'bpoweski-apnserver'
-end
-
 require 'apnserver'
 
 def usage
@@ -23,7 +16,7 @@ def usage
 end
 
 def daemonize
-  Daemonize.daemonize('apnserverd', 'apnserverd')
+  Daemonize.daemonize('/var/log/apnserverd.log', 'apnserverd')
   @pid_file = '/var/run/apnserverd.pid'
   open(@pid_file,"w") {|f| f.write(Process.pid) } # copied from mongrel
   open(@pid_file,"w") do |f|
@@ -72,9 +65,7 @@ if pem.nil?
   usage
   exit 1
 else
-  if daemon
-    daemonize('/var/log/apnserverd.log', 'apnserverd')
-  end
+  daemonize if daemon
   server = ApnServer::Server.new(pem, bind_address, proxy_port)
   server.client.host = host
   server.client.port = port

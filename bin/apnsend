@@ -4,11 +4,6 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'logger'
 require 'getoptlong'
 require 'rubygems'
-begin
-  gem 'apnserver'
-rescue Gem::LoadError
-  gem 'bpoweski-apnserver'
-end
 require 'apnserver'
 require 'base64'
 require 'socket'
