@@ -9,7 +9,7 @@ require 'apnserver'
 require 'base64'
 require 'socket'
 
-$logger = Logger.new(STDOUT)
+$log = Logger.new(STDOUT)
 
 
 def usage

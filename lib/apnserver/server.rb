@@ -3,7 +3,7 @@ module ApnServer
   class Server
     attr_accessor :client, :bind_address, :port
     
-    def initialize(pem, bind_address = '0.0.0.0', port = 22195)
+    def initialize(pem, bind_address = '0.0.0.0', port = 22195, log = nil)
       @queue = EM::Queue.new
       @client = ApnServer::Client.new(pem)
       @bind_address, @port = bind_address, port
@@ -11,7 +11,8 @@ module ApnServer
     
     def start!
       EventMachine::run do
-        $logger.info "Starting APN Server on #{bind_address}:#{port}"
+        $log = log || Logger.new(STDOUT)
+        $log.info "Starting APN Server on #{bind_address}:#{port}"
         
         EM.start_server(bind_address, port, ApnServer::ServerConnection) do |s|
           s.queue = @queue

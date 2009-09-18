@@ -6,8 +6,6 @@ require 'rubygems'
 require 'daemons'
 require 'apnserver'
 
-$logger = Logger.new(STDOUT)
-
 def usage
   puts "Usage: apnserverd [switches] --pem <path>"
   puts " --bind-address [0.0.0.0]             bind address of proxy"
@@ -60,16 +58,20 @@ opts.each do |opt, arg|
     pem = arg
   when '--daemon'
     daemon = true
-    $logger = Logger.new('/var/log/apnserverd.log', 'weekly')
   end
 end
+
+$log = Logger.new(STDOUT) unless $log
 
 if pem.nil?
   usage
   exit 1
 else
-  daemonize if daemon
-  server = ApnServer::Server.new(pem, bind_address, proxy_port)
+  if daemon
+    daemonize 
+    $stdout = File.new('/var/log/apnserverd', 'a')
+  end
+  server = ApnServer::Server.new(pem, bind_address, proxy_port, $log)
   server.client.host = host
   server.client.port = port
   server.start!
