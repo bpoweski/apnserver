@@ -4,6 +4,13 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'getoptlong'
 require 'rubygems'
 require 'daemons'
+
+begin
+  gem 'apnserver'
+rescue Gem::LoadError
+  gem 'bpoweski-apnserver'
+end
+
 require 'apnserver'
 
 def usage
@@ -66,8 +73,7 @@ if pem.nil?
   exit 1
 else
   if daemon
-    daemonize 
-    $stdout = File.new('/var/log/apnserverd', 'a')
+    daemonize('/var/log/apnserverd.log', 'apnserverd')
   end
   server = ApnServer::Server.new(pem, bind_address, proxy_port)
   server.client.host = host

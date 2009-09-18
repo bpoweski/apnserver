@@ -3,11 +3,11 @@ module ApnServer
     
     def post_init
       @address = Socket.unpack_sockaddr_in(self.get_peername)
-      puts "[#{address.last}:#{address.first}] CONNECT"
+      puts "#{Time.now} [#{address.last}:#{address.first}] CONNECT"
     end
     
     def unbind
-      puts "[#{address.last}:#{address.first}] DISCONNECT"    
+      puts "#{Time.now} [#{address.last}:#{address.first}] DISCONNECT"    
     end
     
     def receive_data(data)
