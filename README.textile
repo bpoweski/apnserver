@@ -14,6 +14,11 @@ h2. Remaining Tasks
  
  * Implement feedback service mechanism
  * Implement robust notification sending in reactor periodic scheduler
+ 
+h2. Issues Fixed
+ 
+ * apnsend --badge option correctly sends integer number rather than string of number for aps json payload
+ * connections are propery closed in Notification#push method now
 
 h2. APN Server Daemon
    
