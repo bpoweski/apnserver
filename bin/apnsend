@@ -9,9 +9,6 @@ require 'apnserver'
 require 'base64'
 require 'socket'
 
-$log = Logger.new(STDOUT)
-
-
 def usage
   puts "Usage: apnsend [switches] (--b64-token | --hex-token) <token>"
   puts " --server <localhost>                 the apn server defaults to a locally running apnserverd"

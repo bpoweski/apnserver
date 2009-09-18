@@ -61,8 +61,6 @@ opts.each do |opt, arg|
   end
 end
 
-$log = Logger.new(STDOUT) unless $log
-
 if pem.nil?
   usage
   exit 1
@@ -71,7 +69,7 @@ else
     daemonize 
     $stdout = File.new('/var/log/apnserverd', 'a')
   end
-  server = ApnServer::Server.new(pem, bind_address, proxy_port, $log)
+  server = ApnServer::Server.new(pem, bind_address, proxy_port)
   server.client.host = host
   server.client.port = port
   server.start!
