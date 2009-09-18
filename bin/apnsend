@@ -53,7 +53,7 @@ opts.each do |opt, arg|
   when '--sound'
     notification.sound = arg
   when '--badge'
-    notification.badge = arg
+    notification.badge = arg.to_i
   when '--custom'
     notification.custom = arg
   when '--b64-token'

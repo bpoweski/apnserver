@@ -13,7 +13,6 @@ persistent connection.
 h2. Remaining Tasks
  
  * Implement feedback service mechanism
- * Fix badge number issue
  * Implement robust notification sending in reactor periodic scheduler
 
 h2. APN Server Daemon
