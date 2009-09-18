@@ -42,7 +42,6 @@ Usage: apnserverd [options] --pem /path/to/pem
   
   --daemon
     Runs process as daemon, not available on Windows
-    
   </code>
 </pre>
 
