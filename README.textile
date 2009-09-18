@@ -10,11 +10,10 @@ opening up and tearing down SSL connections reapeated.  To solve this problem an
 network server is introduced that queues are requests to the APN service and sends them via a 
 persistent connection.
 
-h2. TODO
+h2. Remaining Tasks
  
  * Implement feedback service mechanism
- * Investigate possible badge number issue
- * Implement a robust logging mechanism for transactions
+ * Fix badge number issue
 
 h2. APN Server Daemon
    
