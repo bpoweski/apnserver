@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{apnserver}
-  s.version = "0.1.3"
+  s.version = "0.1.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ben Poweski"]
-  s.date = %q{2009-09-18}
+  s.date = %q{2009-09-22}
   s.description = %q{A toolkit for proxying and sending Apple Push Notifications}
   s.email = %q{bpoweski@3factors.com}
   s.executables = ["apnsend", "apnserverd", "apnserverd.fedora.init"]
@@ -20,7 +20,6 @@ Gem::Specification.new do |s|
     "README.textile",
      "Rakefile",
      "VERSION",
-     "apnserver.gemspec",
      "bin/apnsend",
      "bin/apnserverd",
      "bin/apnserverd.fedora.init",

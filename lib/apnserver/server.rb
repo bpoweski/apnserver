@@ -22,8 +22,13 @@ module ApnServer
             size = @queue.size
             size.times do 
               @queue.pop do |notification|
-                @client.connect! unless @client.connected?
-                @client.write(notification)
+                begin
+                  @client.connect! unless @client.connected?
+                  @client.write(notification)
+                rescue Errno::EPIPE
+                  puts "Caught Errno::EPIPE adding notification back to queue"
+                  @queue.push(notification)
+                end
               end
             end
           end
