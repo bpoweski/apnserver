@@ -17,7 +17,7 @@ h2. Remaining Tasks
  
 h2. Issues Fixed
 
- * first attempt at retry logic for a notification
+ * second attempt at retry logic, SSL Errors close down sockets now
  * apnsend --badge option correctly sends integer number rather than string of number for aps json payload
  * connections are propery closed in Notification#push method now
 

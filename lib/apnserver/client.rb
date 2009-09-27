@@ -28,6 +28,8 @@ module ApnServer
     def disconnect!
       @ssl.close
       @sock.close
+      @ssl = nil
+      @sock = nil
     end
     
     def write(notification)

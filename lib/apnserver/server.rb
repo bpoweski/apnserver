@@ -28,6 +28,10 @@ module ApnServer
                 rescue Errno::EPIPE
                   puts "Caught Errno::EPIPE adding notification back to queue"
                   @queue.push(notification)
+                rescue OpenSSL::SSL::SSLError
+                  puts "Caught OpenSSL Error, closing connecting and adding notification back to queue"
+                  @client.disconnect!
+                  @queue.push(notification)
                 end
               end
             end
