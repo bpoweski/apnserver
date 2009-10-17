@@ -23,9 +23,6 @@ h2. Issues Fixed
  * better compatibility with Rails
 
 h2. APN Server Daemon
->>>>>>> Stashed changes
-
-h2. APN Server Daemon
    
 <pre>
   <code>
