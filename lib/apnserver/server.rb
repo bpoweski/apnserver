@@ -32,6 +32,8 @@ module ApnServer
                   puts "Caught OpenSSL Error, closing connecting and adding notification back to queue"
                   @client.disconnect!
                   @queue.push(notification)
+                rescue RuntimeError => e
+                  puts "Unable to handle: #{e}"
                 end
               end
             end
