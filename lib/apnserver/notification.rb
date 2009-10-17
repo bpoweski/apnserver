@@ -1,5 +1,6 @@
 require 'apnserver/payload'
 require 'json'
+require 'json/add/rails' if defined?(Rails)
 
 module ApnServer
   
@@ -44,8 +45,8 @@ module ApnServer
     end
     
     def to_bytes
-      json = json_payload
-      [0, 0, device_token.size, device_token, 0, json.size, json].pack("ccca*cca*")
+      j = json_payload
+      [0, 0, device_token.size, device_token, 0, j.size, j].pack("ccca*cca*")
     end
     
     def self.valid?(payload)

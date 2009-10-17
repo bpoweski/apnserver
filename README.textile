@@ -19,7 +19,11 @@ h2. Issues Fixed
 
  * second attempt at retry logic, SSL Errors close down sockets now
  * apnsend --badge option correctly sends integer number rather than string of number for aps json payload
- * connections are propery closed in Notification#push method now
+ * connections are properly closed in Notification#push method now
+ * better compatibility with Rails
+
+h2. APN Server Daemon
+>>>>>>> Stashed changes
 
 h2. APN Server Daemon
    
