@@ -25,10 +25,12 @@ module ApnServer
       create_payload(p)
     end
     
-    def json_payload
-      p = JSON.generate(payload)
-      raise PayloadInvalid.new("Payload of #{p.size} is longer than 256") if p.size > 256
-      p
+    def json_payload      
+      if defined?(Rails)
+        payload.to_json        
+      else
+        JSON.generate(payload)
+      end
     end
     
     def push
