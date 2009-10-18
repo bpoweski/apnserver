@@ -1,6 +1,5 @@
 require 'apnserver/payload'
 require 'json'
-require 'json/add/rails' if defined?(Rails)
 
 module ApnServer
   
@@ -26,11 +25,7 @@ module ApnServer
     end
     
     def json_payload      
-      if defined?(Rails)
-        payload.to_json        
-      else
-        JSON.generate(payload)
-      end
+      defined?(Rails) ? payload.to_json : JSON.generate(payload)
     end
     
     def push

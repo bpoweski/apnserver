@@ -13,7 +13,10 @@ module ApnServer
     def receive_data(data)
       (@buf ||= "") << data
       if notification = ApnServer::Notification.valid?(@buf)
+        puts "#{Time.now} [#{address.last}:#{address.first}] found valid Notification: #{notification}"
         queue.push(notification)
+      else
+        puts "#{Time.now} [#{address.last}:#{address.first}] invalid notification: #{@buf}"
       end
     end
     
