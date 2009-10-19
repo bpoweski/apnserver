@@ -1,5 +1,6 @@
 require 'apnserver/payload'
 require 'json'
+require 'base64'
 
 module ApnServer
   
@@ -55,6 +56,7 @@ module ApnServer
     end
     
     def self.parse(p)
+      puts "#{Time.now} Parsing: #{Base64::encode64(p)}"
       buffer = p.dup
       notification = Notification.new
       
