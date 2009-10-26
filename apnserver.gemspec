@@ -40,6 +40,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/bpoweski/apnserver}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
+  s.rubyforge_project = %q{apnserver}
   s.rubygems_version = %q{1.3.1}
   s.summary = %q{Apple Push Notification Server}
   s.test_files = [
