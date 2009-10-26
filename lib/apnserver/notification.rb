@@ -27,7 +27,9 @@ module ApnServer
     end
     
     def json_payload      
-      defined?(Rails) ? payload.to_json : JSON.generate(payload)
+      j = defined?(Rails) ? payload.to_json : JSON.generate(payload)
+      raise PayloadInvalid.new("The payload is larger than allowed: #{j.length}") if j.size > 256
+      j
     end
     
     def push
@@ -48,9 +50,14 @@ module ApnServer
       [0, 0, device_token.size, device_token, 0, j.size, j].pack("ccca*cca*")
     end
     
-    def self.valid?(payload)
+    def self.valid?(p)
       begin
-        Notification.parse(payload)
+        Notification.parse(p)
+      rescue PayloadInvalid => p
+        puts "PayloadInvalid: #{p}"
+        false
+      rescue JSON::ParserError => p
+        false
       rescue RuntimeError
         false
       end
@@ -61,7 +68,7 @@ module ApnServer
       notification = Notification.new
       
       header = buffer.slice!(0, 3).unpack('ccc')
-      if header[0] != 0 || header[1] != 0 || header[2] != 32
+      if header[0] != 0
         raise RuntimeError.new("Header of notification is invalid: #{header.inspect}")
       end
             
@@ -71,7 +78,7 @@ module ApnServer
       # parse json payload
       payload_len = buffer.slice!(0, 2).unpack('CC')
       j = buffer.slice!(0, payload_len.last)
-      result = JSON.parse(buffer.slice!(0, payload_len.last))
+      result = JSON.parse(j)
       
       ['alert', 'badge', 'sound'].each do |k|
         notification.send("#{k}=", result['aps'][k]) if result['aps'] && result['aps'][k]
