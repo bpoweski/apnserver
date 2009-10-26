@@ -1,4 +1,6 @@
 require File.dirname(__FILE__) + '/test_helper.rb'
+require 'base64'
+require 'ruby-debug'
 
 class NotificationTest < Test::Unit::TestCase
   include ApnServer
@@ -74,5 +76,17 @@ class NotificationTest < Test::Unit::TestCase
       expected = notification.send(k)
       assert_equal expected, parsed.send(k), "Expected #{k} to be #{expected}"
     end
+  end
+  
+  def test_should_parse_notification
+                                    
+    n = Notification.parse(Base64.decode64(<<-B64
+      AAAgt30z8rJVUlqcAwcOVeSIrsBxibaJ0xyCi8/AkmzNlk8An3siYXBzIjp7
+      InNvdW5kIjoiZGVmYXVsdCIsImFsZXJ0IjoiWW91J3ZlIGJlZW4gbnVkZ2Vk
+      IGh0dHA6XC9cL2JpdC5seVwvMzdEWmZGIiwiYmFkZ2UiOjF9LCJsYXRpdHVk
+      ZSI6MzMuMDgwOTMzLCJsb25naXR1ZGUiOi05Ni44MTkyODgsInNjcmVlbl9u
+      YW1lIjoiM2ZhY3RvcnMifQ==
+      B64
+    ))
   end
 end

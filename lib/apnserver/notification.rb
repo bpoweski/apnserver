@@ -1,5 +1,7 @@
 require 'apnserver/payload'
 require 'json'
+require 'json/add/rails'
+require 'base64'
 
 module ApnServer
   
@@ -62,7 +64,7 @@ module ApnServer
       if header[0] != 0 || header[1] != 0 || header[2] != 32
         raise RuntimeError.new("Header of notification is invalid: #{header.inspect}")
       end
-      
+            
       # parse token
       notification.device_token = buffer.slice!(0, 32).unpack('a*').first
       
