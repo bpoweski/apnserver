@@ -67,7 +67,8 @@ module ApnServer
       notification.device_token = buffer.slice!(0, 32).unpack('a*').first
       
       # parse json payload
-      payload_len = buffer.slice!(0, 2).unpack('cc')
+      payload_len = buffer.slice!(0, 2).unpack('CC')
+      j = buffer.slice!(0, payload_len.last)
       result = JSON.parse(buffer.slice!(0, payload_len.last))
       
       ['alert', 'badge', 'sound'].each do |k|
