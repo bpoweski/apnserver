@@ -1,4 +1,6 @@
 require 'rubygems'
+require 'rake/testtask'
+require 'rake/rdoctask'
 
 begin
   require 'jeweler'
@@ -19,7 +21,6 @@ rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
 end
 
-require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
   test.test_files = FileList.new('test/**/test_*.rb') do |list|
     list.exclude 'test/test_helper.rb'
@@ -29,7 +30,11 @@ Rake::TestTask.new(:test) do |test|
 end
 
 Jeweler::RubyforgeTasks.new do |rubyforge|
-  rubyforge.doc_task = "rdoc"
+end
+
+Rake::RDocTask.new do |rd|
+  rd.main = "README.textile"
+  rd.rdoc_files.include("README.textile", "lib/**/*.rb")
 end
 
 task :default => [:test]
