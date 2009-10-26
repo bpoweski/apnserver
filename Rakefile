@@ -12,6 +12,7 @@ begin
     gemspec.add_dependency 'eventmachine'
     gemspec.add_dependency 'daemons'
     gemspec.add_dependency 'json'
+    gemspec.rubyforge_project = 'apnserver'
     gemspec.files = FileList['lib/**/*.rb', 'bin/*', '[A-Z]*', 'test/**/*'].to_a
   end
 rescue LoadError
@@ -25,6 +26,10 @@ Rake::TestTask.new(:test) do |test|
   end
   test.libs << 'test'
   test.verbose = true
+end
+
+Jeweler::RubyforgeTasks.new do |rubyforge|
+  rubyforge.doc_task = "rdoc"
 end
 
 task :default => [:test]
