@@ -2,3 +2,5 @@
 .loadpath
 pkg
 *.gem
+html
+rdoc
