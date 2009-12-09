@@ -14,7 +14,8 @@ PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Apple Push Notification Server Daemon"
 NAME=apnserverd
 DAEMON=/usr/bin/$NAME
-DAEMON_ARGS=""
+PEMPATH=""
+DAEMON_ARGS="--daemon --pem $PEMPATH"
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME
 
