@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.date = %q{2009-11-21}
   s.description = %q{A toolkit for proxying and sending Apple Push Notifications}
   s.email = %q{bpoweski@3factors.com}
-  s.executables = ["apnsend", "apnserverd", "apnserverd.fedora.init", "apnserverd.ubuntu.init"]
+  s.executables = ["apnsend", "apnserverd"]
   s.extra_rdoc_files = [
     "README.textile"
   ]
