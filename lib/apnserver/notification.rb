@@ -27,7 +27,7 @@ module ApnServer
     end
     
     def json_payload      
-      j = defined?(Rails) ? payload.to_json : JSON.generate(payload)
+      j = defined?(ActiveSupport) ? payload.to_json : JSON.generate(payload)
       raise PayloadInvalid.new("The payload is larger than allowed: #{j.length}") if j.size > 256
       j
     end
