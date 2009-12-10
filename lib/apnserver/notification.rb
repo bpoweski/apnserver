@@ -60,6 +60,8 @@ module ApnServer
         false
       rescue RuntimeError
         false
+      rescue Exception => e
+        false
       end
     end
     
