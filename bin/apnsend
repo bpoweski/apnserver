@@ -59,7 +59,7 @@ opts.each do |opt, arg|
   when '--b64-token'
     notification.device_token = Base64::decode64(arg)
   when '--hex-token'
-    notification.device_token  = arg.unpack('H*')
+    notification.device_token  = arg.scan(/[0-9a-f][0-9a-f]/).map {|s| s.hex.chr}.join
   end
 end
 
