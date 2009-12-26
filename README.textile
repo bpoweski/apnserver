@@ -123,11 +123,12 @@ Finally within we can send a push notification using the following code
 
 h2. Installation
 
-To install apnserver execute the following gem command:
+Apnserver is hosted on "gemcutter":http://gemcutter.org/gems/apnserver and
+"Rubyforge":http://rubyforge.org/projects/apnserver/.
 
 <pre>
 <code>
-  $ gem install bpoweski-apnserver --source http://gems.github.com
+  $ gem install apnserver
 </code>
 </pre>
 
@@ -135,7 +136,7 @@ Adding apnserver to your Rails application
 
 <pre>
   <code>
-  config.gem "bpoweski-apnserver", :lib => 'apnserver', :source => "http://gems.github.com"
+  config.gem "apnserver", :lib => 'apnserver', :version => ">= 0.1.10"
   </code>
 </pre>
 
