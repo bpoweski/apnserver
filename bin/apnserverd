@@ -12,12 +12,14 @@ def usage
   puts " --proxy-port [22195]                 port proxy listens on"
   puts " --server <gateway.push.apple.com>    the apn server to send messages to"
   puts " --port <2195>                        the port of the apn server"
+  puts " --pid </var/run/apnserverd.pid       the path to store the pid"
+  puts " --log </var/log/apnserverd.log       the path to store the log"
+  puts " --daemon                             to daemonize the server"
   puts " --help                               this message"
 end
 
 def daemonize
-  Daemonize.daemonize('/var/log/apnserverd.log', 'apnserverd')
-  @pid_file = '/var/run/apnserverd.pid'
+  Daemonize.daemonize(@log_file, 'apnserverd')
   open(@pid_file,"w") {|f| f.write(Process.pid) } # copied from mongrel
   open(@pid_file,"w") do |f|
     f.write(Process.pid)
@@ -30,6 +32,8 @@ opts = GetoptLong.new(
   ["--proxy-port", "-P", GetoptLong::REQUIRED_ARGUMENT],
   ["--server", "-s", GetoptLong::REQUIRED_ARGUMENT],
   ["--port", "-p", GetoptLong::REQUIRED_ARGUMENT],
+  ["--pid", "-i", GetoptLong::REQUIRED_ARGUMENT],
+  ["--log", "-l", GetoptLong::REQUIRED_ARGUMENT],
   ["--pem", "-c", GetoptLong::REQUIRED_ARGUMENT],
   ["--help", "-h", GetoptLong::NO_ARGUMENT],
   ["--daemon", "-d", GetoptLong::NO_ARGUMENT]
@@ -40,6 +44,8 @@ proxy_port = 22195
 host = 'gateway.push.apple.com'
 port = 2195
 pem = nil
+@pid_file = '/var/run/apnserverd.pid'
+@log_file = '/var/log/apnserverd.log'
 daemon = false
 
 opts.each do |opt, arg|
@@ -54,6 +60,10 @@ opts.each do |opt, arg|
   	host = arg
   when '--port'
   	port = arg.to_i
+	when '--pid'
+	  @pid_file = arg
+  when '--log'
+    @log_file = arg
   when '--pem'
     pem = arg
   when '--daemon'
