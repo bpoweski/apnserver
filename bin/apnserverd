@@ -52,6 +52,7 @@ opts.each do |opt, arg|
   case opt
   when '--help'
     usage
+    exit 1
   when '--bind-address'
     bind_address = arg
   when '--proxy-port'
