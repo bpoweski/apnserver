@@ -26,6 +26,7 @@ opts = GetoptLong.new(
   ["--server", "-s", GetoptLong::REQUIRED_ARGUMENT],
   ["--port", "-p", GetoptLong::REQUIRED_ARGUMENT],
   ["--pem", "-c", GetoptLong::REQUIRED_ARGUMENT],
+  ["--pem-passphrase", "-C", GetoptLong::REQUIRED_ARGUMENT],
   ["--alert", "-a", GetoptLong::REQUIRED_ARGUMENT],
   ["--sound", "-S", GetoptLong::REQUIRED_ARGUMENT],
   ["--badge", "-b", GetoptLong::REQUIRED_ARGUMENT],
@@ -48,6 +49,8 @@ opts.each do |opt, arg|
     ApnServer::Config.port = arg.to_i
   when '--pem'
     ApnServer::Config.pem = arg
+  when '--pem-passphrase'
+    ApnServer::Config.password = arg
   when '--alert'
     notification.alert = arg
   when '--sound'

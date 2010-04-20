@@ -8,6 +8,7 @@ require 'apnserver'
 
 def usage
   puts "Usage: apnserverd [switches] --pem <path>"
+  puts " --pem-passphrase <passphrase>        pem passphrase"
   puts " --bind-address [0.0.0.0]             bind address of proxy"
   puts " --proxy-port [22195]                 port proxy listens on"
   puts " --server <gateway.push.apple.com>    the apn server to send messages to"
@@ -35,6 +36,7 @@ opts = GetoptLong.new(
   ["--pid", "-i", GetoptLong::REQUIRED_ARGUMENT],
   ["--log", "-l", GetoptLong::REQUIRED_ARGUMENT],
   ["--pem", "-c", GetoptLong::REQUIRED_ARGUMENT],
+  ["--pem-passphrase", "-C", GetoptLong::REQUIRED_ARGUMENT],
   ["--help", "-h", GetoptLong::NO_ARGUMENT],
   ["--daemon", "-d", GetoptLong::NO_ARGUMENT]
 )
@@ -44,6 +46,7 @@ proxy_port = 22195
 host = 'gateway.push.apple.com'
 port = 2195
 pem = nil
+pem_passphrase = nil
 @pid_file = '/var/run/apnserverd.pid'
 @log_file = '/var/log/apnserverd.log'
 daemon = false
@@ -67,6 +70,8 @@ opts.each do |opt, arg|
     @log_file = arg
   when '--pem'
     pem = arg
+  when '--pem-passphrase'
+    pem_passphrase = arg
   when '--daemon'
     daemon = true
   end
@@ -80,5 +85,6 @@ else
   server = ApnServer::Server.new(pem, bind_address, proxy_port)
   server.client.host = host
   server.client.port = port
+  server.client.password = pem_passphrase
   server.start!
 end
