@@ -13,6 +13,7 @@ def usage
   puts " --server <localhost>                 the apn server defaults to a locally running apnserverd"
   puts " --port <2195>                        the port of the apn server"
   puts " --pem <path>                         the path to the pem file, if a pem is supplied the server defaults to gateway.push.apple.com:2195"
+  puts " --pem-passphrase <passphrase>        the pem passphrase"
   puts " --alert <message>                    the message to send"
   puts " --sound <default>                    the sound to play, defaults to 'default'"
   puts " --badge <number>                     the badge number"

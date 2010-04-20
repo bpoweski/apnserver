@@ -43,6 +43,9 @@ Usage: apnserverd [options] --pem /path/to/pem
     The PEM encoded private key and certificate.
     To export a PEM ecoded file execute 
     # openssl pkcs12 -in cert.p12 -out cert.pem -nodes -clcerts
+	
+	--pem-passphrase passphrase
+		The PEM passphrase to decode key.
  
   --help
     usage message  
@@ -65,6 +68,7 @@ Usage: apnsend [switches] (--b64-token | --hex-token) <token>
   --port <2195>                        the port of the apn server
   --pem <path>                         the path to the pem file, if a pem is supplied the server 
                                        defaults to gateway.push.apple.com:2195
+	--pem-passphrase <passphrase>        the pem passphrase
   --alert <message>                    the message to send"
   --sound <default>                    the sound to play, defaults to 'default'
   --badge <number>                     the badge number
