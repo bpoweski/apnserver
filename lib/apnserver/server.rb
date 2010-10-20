@@ -31,6 +31,8 @@ module ApnServer
                   @queue.push(notification)
                 rescue RuntimeError => e
                   puts "Unable to handle: #{e}"
+                rescue Exception => e
+                  puts "Unable to handle: #{e}"
                 end
               end
             end
