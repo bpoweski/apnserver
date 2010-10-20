@@ -25,7 +25,7 @@ module ApnServer
                 begin
                   @client.connect! unless @client.connected?
                   @client.write(notification)
-                rescue Errno::EPIPE, OpenSSL::SSL::SSLError
+                rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
                   puts "Caught Error, closing connecting and adding notification back to queue"
                   @client.disconnect!
                   @queue.push(notification)
