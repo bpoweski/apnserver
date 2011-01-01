@@ -5,8 +5,8 @@ h1. Apple Push Notification Server Toolkit
 h2. Description
 
 apnserver is a server and set of command line programs to send push notifications to the iPhone.
-Apple recomends to maintain an open connection to the push notification service and refrain from 
-opening up and tearing down SSL connections reapeated.  To solve this problem an intermediate 
+Apple recommends to maintain an open connection to the push notification service and refrain from 
+opening up and tearing down SSL connections repeated.  To solve this problem an intermediate 
 network server is introduced that queues are requests to the APN service and sends them via a 
 persistent connection.
 
@@ -148,7 +148,7 @@ h2. License
 
 (The MIT License)
 
-Copyright (c) 2009 Ben Poweski
+Copyright (c) 2011 Ben Poweski
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
