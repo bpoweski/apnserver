@@ -19,7 +19,8 @@ Rspec.configure do |config|
 end
 # Requires supporting files with custom matchers and macros, etc,
 # in ./support/ and its subdirectories.
-Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
 require "apnserver"
 require 'base64'
+
+Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
