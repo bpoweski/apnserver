@@ -5,16 +5,16 @@ h1. Apple Push Notification Server Toolkit
 h2. Description
 
 apnserver is a server and set of command line programs to send push notifications to the iPhone.
-Apple recommends to maintain an open connection to the push notification service and refrain from 
-opening up and tearing down SSL connections repeated.  To solve this problem an intermediate 
-network server is introduced that queues are requests to the APN service and sends them via a 
+Apple recommends to maintain an open connection to the push notification service and refrain from
+opening up and tearing down SSL connections repeated.  To solve this problem an intermediate
+network server is introduced that queues are requests to the APN service and sends them via a
 persistent connection.
 
 h2. Remaining Tasks
- 
+
  * Implement feedback service mechanism
  * Implement robust notification sending in reactor periodic scheduler
- 
+
 h2. Issues Fixed
 
  * second attempt at retry logic, SSL Errors close down sockets now
@@ -26,33 +26,33 @@ h2. Issues Fixed
  * moved to Rspec
 
 h2. APN Server Daemon
-   
+
 <pre>
   <code>
 Usage: apnserverd [options] --pem /path/to/pem
   --bind-address bind address (defaults to 0.0.0.0)
     bind address of the server daemon
-  
-  --proxy-port port 
+
+  --proxy-port port
     the port that the daemon will listen on (defaults to 22195)
-  
+
   --server server
     APN Server (defaults to gateway.push.apple.com)
-  
+
   --port port of the APN Server
     APN server port (defaults to 2195)
-  
+
   --pem pem file path
     The PEM encoded private key and certificate.
-    To export a PEM ecoded file execute 
+    To export a PEM ecoded file execute
     # openssl pkcs12 -in cert.p12 -out cert.pem -nodes -clcerts
-	
+
   --pem-passphrase passphrase
     The PEM passphrase to decode key.
- 
+
   --help
-    usage message  
-  
+    usage message
+
   --daemon
     Runs process as daemon, not available on Windows
   </code>
@@ -60,7 +60,7 @@ Usage: apnserverd [options] --pem /path/to/pem
 
 h2. APN Server Client
 
-With the APN server client script you can send push notifications directly to 
+With the APN server client script you can send push notifications directly to
 Apple's APN server over an SSL connection or to the above daemon using a plain socket.
 To send a notification to Apple's APN server using SSL the *--pem* option must be used.
 
@@ -69,7 +69,7 @@ To send a notification to Apple's APN server using SSL the *--pem* option must b
 Usage: apnsend [switches] (--b64-token | --hex-token) <token>
   --server <localhost>                 the apn server defaults to a locally running apnserverd
   --port <2195>                        the port of the apn server
-  --pem <path>                         the path to the pem file, if a pem is supplied the server 
+  --pem <path>                         the path to the pem file, if a pem is supplied the server
                                        defaults to gateway.push.apple.com:2195
   --pem-passphrase <passphrase>        the pem passphrase
   --alert <message>                    the message to send"
@@ -101,6 +101,7 @@ To configure the client to send to the local apnserverd process configure the Ap
   # configured for a using the apnserverd proxy
   ApnServer::Config.host = 'localhost'
   ApnServer::Config.port = 22195
+  ApnServer::Config.logger = Rails.logger
   </code>
 </pre>
 
@@ -130,8 +131,7 @@ Finally within we can send a push notification using the following code
 
 h2. Installation
 
-Apnserver is hosted on "gemcutter":http://gemcutter.org/gems/apnserver and
-"Rubyforge":http://rubyforge.org/projects/apnserver/.
+Apnserver is hosted on "rubygems":https://rubygems.org/gems/apnserver
 
 <pre>
 <code>
@@ -143,9 +143,10 @@ Adding apnserver to your Rails application
 
 <pre>
   <code>
-  config.gem "apnserver", :lib => 'apnserver', :version => ">= 0.1.10"
+  gem 'apnserver', '>= 0.2.0
   </code>
 </pre>
+
 
 h2. License
 

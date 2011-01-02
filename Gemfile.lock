@@ -19,7 +19,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activesupport (>= 2.3)
+  activesupport (>= 3.0.0)
   daemons
   eventmachine
   i18n

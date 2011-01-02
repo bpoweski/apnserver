@@ -1,3 +1,5 @@
+require 'apnserver/protocol'
+
 class TestServer
   attr_accessor :queue
   include ApnServer::Protocol

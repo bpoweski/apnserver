@@ -5,6 +5,7 @@ require 'getoptlong'
 require 'rubygems'
 require 'daemons'
 require 'apnserver'
+require 'apnserver/server'
 
 def usage
   puts "Usage: apnserverd [switches] --pem <path>"
@@ -21,11 +22,11 @@ end
 
 def daemonize
   Daemonize.daemonize(@log_file, 'apnserverd')
-  open(@pid_file,"w") {|f| f.write(Process.pid) } # copied from mongrel
+  open(@pid_file,"w") { |f| f.write(Process.pid) }
   open(@pid_file,"w") do |f|
     f.write(Process.pid)
     File.chmod(0644, @pid_file)
-  end 
+  end
 end
 
 opts = GetoptLong.new(
@@ -61,11 +62,11 @@ opts.each do |opt, arg|
   when '--proxy-port'
     proxy_port = arg.to_i
   when '--server'
-  	host = arg
+    host = arg
   when '--port'
-  	port = arg.to_i
-	when '--pid'
-	  @pid_file = arg
+    port = arg.to_i
+  when '--pid'
+    @pid_file = arg
   when '--log'
     @log_file = arg
   when '--pem'

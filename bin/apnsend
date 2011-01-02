@@ -17,9 +17,9 @@ def usage
   puts " --alert <message>                    the message to send"
   puts " --sound <default>                    the sound to play, defaults to 'default'"
   puts " --badge <number>                     the badge number"
-  puts " --custom <json string>               a custom json string to be added to the main object"  
+  puts " --custom <json string>               a custom json string to be added to the main object"
   puts " --b64-token <token>                  a base 64 encoded device token"
-  puts " --hex-token <token>                  a hex encoded device token"  
+  puts " --hex-token <token>                  a hex encoded device token"
   puts " --help                               this message"
 end
 
@@ -31,7 +31,7 @@ opts = GetoptLong.new(
   ["--alert", "-a", GetoptLong::REQUIRED_ARGUMENT],
   ["--sound", "-S", GetoptLong::REQUIRED_ARGUMENT],
   ["--badge", "-b", GetoptLong::REQUIRED_ARGUMENT],
-  ["--custom", "-j", GetoptLong::REQUIRED_ARGUMENT],  
+  ["--custom", "-j", GetoptLong::REQUIRED_ARGUMENT],
   ["--b64-token", "-B", GetoptLong::REQUIRED_ARGUMENT],
   ["--hex-token", "-H", GetoptLong::REQUIRED_ARGUMENT],
   ["--help", "-h", GetoptLong::NO_ARGUMENT]
@@ -59,7 +59,7 @@ opts.each do |opt, arg|
   when '--badge'
     notification.badge = arg.to_i
   when '--custom'
-    notification.custom = arg
+    notification.custom = ActiveSupport::JSON.decode(arg)
   when '--b64-token'
     notification.device_token = Base64::decode64(arg)
   when '--hex-token'
@@ -68,7 +68,7 @@ opts.each do |opt, arg|
 end
 
 if notification.device_token.nil?
-  usage  
+  usage
   exit
 else
   notification.push

@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = %q{apnserver}
-  s.version = "0.2.0"
+  s.version = "0.2.1"
   s.platform    = Gem::Platform::RUBY
 
   s.authors = ["Ben Poweski"]
@@ -21,4 +21,5 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = ">= 1.3.6"
   s.add_dependency 'activesupport',       '~> 3.0.0'
   s.add_development_dependency 'bundler', '~> 1.0.0'
+  s.add_development_dependency 'eventmachine', '>= 0.12.8'
 end
