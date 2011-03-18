@@ -2,6 +2,13 @@ h1. Apple Push Notification Server Toolkit
 
 * http://github.com/bpoweski/apnserver
 
+This is an independent fork of the above repository, to run with the Fracas web service. Some
+changes have been made, notably the JSON encoding/decoding. I've pulled out the dependency on
+ActiveSupport, and introduced a dependency on Yajl. As such, I've rewritten all JSON decoding
+and encoding to use Yajl.
+
+Other changes will be forthcoming.
+
 h2. Description
 
 apnserver is a server and set of command line programs to send push notifications to the iPhone.
@@ -20,7 +27,7 @@ h2. Issues Fixed
  * second attempt at retry logic, SSL Errors close down sockets now
  * apnsend --badge option correctly sends integer number rather than string of number for aps json payload
  * connections are properly closed in Notification#push method now
- * removed json gem in favor of ActiveSupport
+ * removed ActiveSupport in favor of Yajl
  * Rails 3.x support
  * drop the erroneous puts statements in favor a configurable logger
  * moved to Rspec

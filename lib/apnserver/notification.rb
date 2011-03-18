@@ -1,7 +1,6 @@
 require 'apnserver/payload'
 require 'base64'
-require 'active_support/ordered_hash'
-require 'active_support/json'
+require 'yajl'
 
 module ApnServer
   class Config
@@ -26,7 +25,7 @@ module ApnServer
     end
 
     def json_payload
-      j = ActiveSupport::JSON.encode(payload)
+      j = Yajl::Encoder.encode(payload)
       raise PayloadInvalid.new("The payload is larger than allowed: #{j.length}") if j.size > 256
       j
     end
@@ -77,7 +76,7 @@ module ApnServer
       # parse json payload
       payload_len = buffer.slice!(0, 2).unpack('CC')
       j = buffer.slice!(0, payload_len.last)
-      result = ActiveSupport::JSON.decode(j)
+      result = Yajl::Parser.parse(j)
 
       ['alert', 'badge', 'sound'].each do |k|
         notification.send("#{k}=", result['aps'][k]) if result['aps'] && result['aps'][k]
