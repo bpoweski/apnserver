@@ -4,6 +4,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'getoptlong'
 require 'rubygems'
 require 'daemons'
+require 'eventmachine'
 require 'apnserver'
 require 'apnserver/server'
 
