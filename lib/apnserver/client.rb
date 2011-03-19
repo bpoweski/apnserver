@@ -10,12 +10,11 @@ module ApnServer
     end
 
     def connect!
-      raise "The path to your pem file is not set." unless self.pem
-      raise "The path to your pem file does not exist!" unless File.exist?(self.pem)
+      raise "Your certificate is not set." unless self.pem
 
       @context      = OpenSSL::SSL::SSLContext.new
-      @context.cert = OpenSSL::X509::Certificate.new(File.read(self.pem))
-      @context.key  = OpenSSL::PKey::RSA.new(File.read(self.pem), self.password)
+      @context.cert = OpenSSL::X509::Certificate.new(self.pem)
+      @context.key  = OpenSSL::PKey::RSA.new(self.pem, self.password)
 
       @sock         = TCPSocket.new(self.host, self.port.to_i)
       @ssl          = OpenSSL::SSL::SSLSocket.new(@sock, @context)
