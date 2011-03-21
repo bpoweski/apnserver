@@ -71,7 +71,7 @@ opts.each do |opt, arg|
   when '--log'
     @log_file = arg
   when '--pem'
-    pem = arg
+    pem = File.read(arg)
   when '--pem-passphrase'
     pem_passphrase = arg
   when '--daemon'
