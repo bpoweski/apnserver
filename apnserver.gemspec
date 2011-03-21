@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.test_files = Dir.glob("spec/**/*")
 
   s.required_rubygems_version = ">= 1.3.6"
-  s.add_dependency 'activesupport',       '~> 3.0.0'
+  s.add_dependency 'yajl-ruby',       '>= 0.7.0'
   s.add_development_dependency 'bundler', '~> 1.0.0'
   s.add_development_dependency 'eventmachine', '>= 0.12.8'
 end
