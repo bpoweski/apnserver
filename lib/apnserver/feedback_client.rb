@@ -17,7 +17,7 @@ module ApnServer
     private
 
     def parse_tuple(data)
-      feedback = data.unpack("N1n1H64")
+      feedback = data.unpack("N1n1H*")
       { :feedback_at => Time.at(feedback[0]), :length => feedback[1], :device_token => feedback[2] }
     end
   end
