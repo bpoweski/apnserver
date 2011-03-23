@@ -1,14 +1,15 @@
 module ApnServer
   class Server
-    attr_accessor :client, :bind_address, :port
+    attr_accessor :client, :bind_address, :port, :feedback_callback
 
     ONCE_A_DAY = 60 * 60 * 24
 
-    def initialize(pem, bind_address = '0.0.0.0', port = 22195)
+    def initialize(pem, bind_address = '0.0.0.0', port = 22195, &feedback_blk)
       @queue = EM::Queue.new
       @client = ApnServer::Client.new(pem)
       @feedback_client = ApnServer::FeedbackClient.new(pem)
       @bind_address, @port = bind_address, port
+      @feedback_callback = feedback_blk
       Config.logger = Logger.new("/dev/stdout")
     end
 
@@ -24,11 +25,7 @@ module ApnServer
           begin
             @feedback_client.connect! unless @feedback_client.connected?
             @feedback_client.read.each do |record|
-              # In here, we need to inspect the record, make sure that we yank it
-              # out from the database. record is a hash with keys:
-              #   feedback_at, length, token
-              # For debugging purposes, just print it out
-              p record
+              feedback_callback.call record
             end
             @feedback_client.disconnect!
           rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
