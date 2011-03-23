@@ -3,11 +3,17 @@ h1. Apple Push Notification Server Toolkit
 * http://github.com/bpoweski/apnserver
 
 This is an independent fork of the above repository, to run with the Fracas web service. Some
-changes have been made, notably the JSON encoding/decoding. I've pulled out the dependency on
-ActiveSupport, and introduced a dependency on Yajl. As such, I've rewritten all JSON decoding
-and encoding to use Yajl.
+changes have been made, notably the JSON encoding/decoding, and the support of the feedback
+service. I've pulled out the dependency on ActiveSupport, and introduced a dependency on Yajl.
+As such, I've rewritten all JSON decoding and encoding to use Yajl.
 
-Other changes will be forthcoming.
+In addition, this fork varies in another critical way. The certificates are no longer passed in
+as a path to a file, but rather the contents of that file. This is done due to the need for
+Fracas, having the certificates recorded as a string in a database, not encoded in files. For
+others who may have files, just File.read(your_path) first and you'll be fine. Note that the
+apnsend and apnserverd still expect the certificate as a path.
+
+Other changes may be forthcoming.
 
 h2. Description
 
@@ -19,7 +25,7 @@ persistent connection.
 
 h2. Remaining Tasks
 
- * Implement feedback service mechanism
+ * -Implement feedback service mechanism-
  * Implement robust notification sending in reactor periodic scheduler
 
 h2. Issues Fixed
