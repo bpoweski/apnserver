@@ -3,13 +3,12 @@ require 'beanstalk-client'
 module ApnServer
   class QueueServer
 
-    attr_accessor :client, :beanstalkd_uris, :port, :feedback_callback
+    attr_accessor :beanstalkd_uris, :feedback_callback
 
     def initialize(beanstalkd_uris = ["beanstalk://127.0.0.1:11300"], &feedback_blk)
       @clients = {}
       @feedback_callback = feedback_blk
       @beanstalkd_uris = beanstalkd_uris
-      Config.logger = Logger.new("/dev/stdout")
     end
 
     def beanstalk
@@ -52,7 +51,7 @@ module ApnServer
     def handle_job(job)
       job_hash = job.ybody
       if notification = ApnServer::Notification.valid?(job_hash[:notification])
-        client = get_client(job_hash[:project_name], job_hash[:certificate])
+        client = get_client(job_hash[:project_name], job_hash[:certificate], job_hash[:sandbox])
         begin
           client.connect! unless client.connected?
           client.write(notification)
@@ -62,22 +61,22 @@ module ApnServer
           client.disconnect!
           # Queue back up the notification
           job.release
-          # TODO: Write a failure receipt
         rescue RuntimeError => e
           Config.logger.error "Unable to handle: #{e}"
         end
       end
     end
 
-    def get_client(project_name, certificate)
-      @clients[project_name] ||= ApnServer::Client.new(certificate)
+    def get_client(project_name, certificate, sandbox = false)
+      uri = "gateway.#{sandbox ? 'sandbox.' : ''}.push.apple.com"
+      @clients[project_name] ||= ApnServer::Client.new(certificate, uri)
       client = @clients[project_name]
 
       # If the certificate has changed, but we still are connected using the old certificate,
       # disconnect and reconnect.
       unless client.pem.eql?(certificate)
-        client.disconnect!
-        @clients[project_name] = ApnServer::Client.new(certificate)
+        client.disconnect! if client.connected?
+        @clients[project_name] = ApnServer::Client.new(certificate, uri)
         client = @clients[project_name]
       end
 
