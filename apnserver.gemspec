@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name = %q{frac-apnserver}
+  s.name = %q{apnserver}
   s.version = "0.3.0"
   s.platform    = Gem::Platform::RUBY
 
@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{https://github.com/jeremytregunna/apnserver}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubyforge_project = %q{frac-apnserver}
+  s.rubyforge_project = %q{apnserver}
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{Apple Push Notification Toolkit for hosted environments}
   s.test_files = Dir.glob("spec/**/*")

@@ -48,14 +48,25 @@ module ApnServer
 
     private
 
+    # Received a notification. The job's body should be a YAML encoded hash containing the following keys:
+    #   :project_name => The name of the project
+    #   :certificate => Certificate to use (Should be able to easily look this up in the DB)
+    #   :receipt_uuid => UUID of the push receipt that was created when the API got the request
+    #   :sandbox => Boolean value to use the sandbox servers or not (optional, defaults to false)
+    #   :notification => An ApnServer::Notification object, fully formed.
     def handle_job(job)
-      job_hash = job.ybody
-      if notification = job_hash[:notification]
-        client = get_client(job_hash[:project_name], job_hash[:certificate], job_hash[:sandbox])
+      packet = job.ybody
+      if notification = packet[:notification]
+        client = get_client(packet[:project_name], packet[:certificate], packet[:sandbox])
         begin
           client.connect! unless client.connected?
           client.write(notification)
           job.delete
+          # TODO: Find the receipt and update the sent_at property.
+          #if receipt = PushLog[packet[:receipt_uuid]]
+          #  receipt.sent_at = Time.now.to_i.to_s
+          #  receipt.save
+          #end
         rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
           Config.logger.error "Caught Error, closing connecting and adding notification back to queue"
           client.disconnect!
@@ -63,6 +74,12 @@ module ApnServer
           job.release
         rescue RuntimeError => e
           Config.logger.error "Unable to handle: #{e}"
+          # TODO: Find the receipt and write the failed_at property.
+          #if receipt = PushLog[packet[:receipt_uuid]]
+          #  receipt.failed_at = Time.now.to_i.to_s
+          #  receipt.save
+          #end
+          job.delete
         end
       end
     end
