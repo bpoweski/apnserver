@@ -1,67 +1,64 @@
-h1. Apple Push Notification Server Toolkit
+h1. Apple Push Notification Server Toolkit for frac.as
 
-* http://github.com/bpoweski/apnserver
+This project started off as a fork of "apnserver":https://github.com/bpoweski/apnserver. It
+has since taken on a different path. How does it differ from apnserver? By a few key points:
 
-This is an independent fork of the above repository, to run with the Fracas web service. Some
-changes have been made, notably the JSON encoding/decoding, and the support of the feedback
-service. I've pulled out the dependency on ActiveSupport, and introduced a dependency on Yajl.
-As such, I've rewritten all JSON decoding and encoding to use Yajl.
+# It implements the APNS feedback service;
+# Uses Yajl for JSON encoding/decoding rather than ActiveSupport;
+# Expects certificates as strings instead of paths to files;
+# Does not assume there is only one certificate; and
+# Receives packets containing notifications from beanstalkd instead of a listening socket.
 
-In addition, this fork varies in another critical way. The certificates are no longer passed in
-as a path to a file, but rather the contents of that file. This is done due to the need for
-Fracas, having the certificates recorded as a string in a database, not encoded in files. For
-others who may have files, just File.read(your_path) first and you'll be fine. Note that the
-apnsend and apnserverd still expect the certificate as a path.
+The above changes were made because of the need for an APNS provider to replace the current
+provider used by "Diligent Street":http://www.diligentstreet.com/ with something more robust. As such, it needs to be
+suitable for a hosted environment, where multiple—unrelated—users of the service will be
+using it.
 
-Other changes may be forthcoming.
+It should be noted that the development of this project is independent of the work bpoweski
+is doing on apnserver. If you're looking for that project, "go here":https://github.com/bpoweski/apnserver.
 
 h2. Description
 
-apnserver is a server and set of command line programs to send push notifications to the iPhone.
-Apple recommends to maintain an open connection to the push notification service and refrain from
-opening up and tearing down SSL connections repeated.  To solve this problem an intermediate
-network server is introduced that queues are requests to the APN service and sends them via a
-persistent connection.
+frac-apnserver is a server and a set of command line programs to send push notifications to iOS
+devices. Apple recommends to maintain an open connection to the push notification service, and
+refrain from opening up and tearing down SSL connections repeatedly. As such, a separate daemon
+is introduced that has messages queued up (beanstalkd) for consumption by this daemon. This
+decouples the APNS server from your backend system. Those notifications are sent over a
+persistent connection to Apple.
 
-h2. Remaining Tasks
+h2. Remaining Tasks & Issues
 
- * -Implement feedback service mechanism-
- * Implement robust notification sending in reactor periodic scheduler
+You can see progress by looking at the "Pivotal Tracker":https://www.pivotaltracker.com/projects/251991 page for fracas. Any labels related to
+_apnserver_ are related to this subproject.
 
-h2. Issues Fixed
+h2. Preparing Certificates
 
- * second attempt at retry logic, SSL Errors close down sockets now
- * apnsend --badge option correctly sends integer number rather than string of number for aps json payload
- * connections are properly closed in Notification#push method now
- * removed ActiveSupport in favor of Yajl
- * Rails 3.x support
- * drop the erroneous puts statements in favor a configurable logger
- * moved to Rspec
+Certificates must be prepared before they can be used with frac-apnserver. Unfortunately,
+Apple gives us @.p12@ files instead of @.pem@ files. As such, we need to convert them. This
+can be accomplished by dropping to the command line and running this command:
+
+<pre>
+	<code>
+		$ openssl pkcs12 -in cert.p12 -out cert.pem -nodes -clcerts
+	</code>
+</pre>
+
+This will generate a file suitable for use with this daemon, called @cert.pem@. If you're
+using frac.as, this is the file you would upload to the web service.
 
 h2. APN Server Daemon
 
 <pre>
   <code>
-Usage: apnserverd [options] --pem /path/to/pem
-  --bind-address bind address (defaults to 0.0.0.0)
-    bind address of the server daemon
+Usage: apnserverd [options] --beanstalk
+  --beanstalk <csv ip:port mappings>
+	The comma-separated list of ip:port for beanstalk servers
 
-  --proxy-port port
-    the port that the daemon will listen on (defaults to 22195)
+  --pid <pid file path>
+	Path used for the PID file. Defaults to /var/run/apnserver.pid
 
-  --server server
-    APN Server (defaults to gateway.push.apple.com)
-
-  --port port of the APN Server
-    APN server port (defaults to 2195)
-
-  --pem pem file path
-    The PEM encoded private key and certificate.
-    To export a PEM ecoded file execute
-    # openssl pkcs12 -in cert.p12 -out cert.pem -nodes -clcerts
-
-  --pem-passphrase passphrase
-    The PEM passphrase to decode key.
+  --log <log file path>
+	Path used for the log file. Defaults to /var/log/apnserver.log
 
   --help
     usage message
