@@ -1,11 +1,11 @@
 require 'beanstalk-client'
 
 module ApnServer
-  class QueueServer
+  class Server
 
     attr_accessor :beanstalkd_uris, :feedback_callback
 
-    def initialize(beanstalkd_uris = ["beanstalk://127.0.0.1:11300"], &feedback_blk)
+    def initialize(beanstalkd_uris = ["127.0.0.1:11300"], &feedback_blk)
       @clients = {}
       @feedback_callback = feedback_blk
       @beanstalkd_uris = beanstalkd_uris
@@ -50,7 +50,7 @@ module ApnServer
 
     def handle_job(job)
       job_hash = job.ybody
-      if notification = ApnServer::Notification.valid?(job_hash[:notification])
+      if notification = job_hash[:notification]
         client = get_client(job_hash[:project_name], job_hash[:certificate], job_hash[:sandbox])
         begin
           client.connect! unless client.connected?
@@ -68,7 +68,7 @@ module ApnServer
     end
 
     def get_client(project_name, certificate, sandbox = false)
-      uri = "gateway.#{sandbox ? 'sandbox.' : ''}.push.apple.com"
+      uri = "gateway.#{sandbox ? 'sandbox.' : ''}push.apple.com"
       @clients[project_name] ||= ApnServer::Client.new(certificate, uri)
       client = @clients[project_name]
 

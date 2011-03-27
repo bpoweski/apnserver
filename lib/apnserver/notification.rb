@@ -54,9 +54,11 @@ module ApnServer
       rescue PayloadInvalid => p
         Config.logger.error "PayloadInvalid: #{p}"
         false
-      rescue RuntimeError
+      rescue RuntimeError => r
+        Config.logger.error "Runtime error: #{r}"
         false
       rescue Exception => e
+        Config.logger.error "Unknown error: #{e}"
         false
       end
     end

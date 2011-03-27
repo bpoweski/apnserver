@@ -1,6 +1,5 @@
 require 'logger'
 require 'apnserver/payload'
 require 'apnserver/notification'
-require 'apnserver/server_connection'
 require 'apnserver/client'
 require 'apnserver/feedback_client'

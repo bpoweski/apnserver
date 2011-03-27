@@ -35,7 +35,7 @@ opts = GetoptLong.new(
   ["--daemon", "-d", GetoptLong::NO_ARGUMENT]
 )
 
-beanstalks = ["beanstalk://127.0.0.1:11300"]
+beanstalks = ["127.0.0.1:11300"]
 @pid_file = '/var/run/apnserverd.pid'
 @log_file = '/var/log/apnserverd.log'
 daemon = false
@@ -47,7 +47,6 @@ opts.each do |opt, arg|
     exit 1
   when '--beanstalk'
     beanstalks = CSV.parse(arg)[0]
-    beanstalks.map! { |e| "beanstalk://#{e}" }
   when '--pid'
     @pid_file = arg
   when '--log'
