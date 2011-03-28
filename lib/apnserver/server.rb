@@ -56,8 +56,9 @@ module ApnServer
     #   :notification => An ApnServer::Notification object, fully formed.
     def handle_job(job)
       packet = job.ybody
-      if notification = packet[:notification]
-        client = get_client(packet[:project_name], packet[:certificate], packet[:sandbox])
+      project = packet[:project]
+      if notification = Notification.new.create_payload(packet[:notification])
+        client = get_client(project.name, project.certificate, packet[:sandbox])
         begin
           client.connect! unless client.connected?
           client.write(notification)

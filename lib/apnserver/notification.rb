@@ -5,7 +5,7 @@ require 'yajl'
 module ApnServer
   class Config
     class << self
-      attr_accessor :host, :port, :pem, :password, :logger
+      attr_accessor :logger
     end
   end
 
