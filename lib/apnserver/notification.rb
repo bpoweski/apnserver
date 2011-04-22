@@ -5,7 +5,7 @@ require 'yajl'
 module ApnServer
   class Config
     class << self
-      attr_accessor :logger
+      attr_accessor :logger, :project_name, :project_beanstalk_pool, :project_pem_location, :project_use_sandbox
     end
   end
 
@@ -30,17 +30,18 @@ module ApnServer
       j
     end
 
-    def push
-      if Config.pem.nil?
-        socket = TCPSocket.new(Config.host || 'localhost', Config.port.to_i || 22195)
-        socket.write(to_bytes)
-        socket.close
-      else
-        client = ApnServer::Client.new(Config.pem, Config.host || 'gateway.push.apple.com', Config.port.to_i || 2195)
-        client.connect!
-        client.write(self)
-        client.disconnect!
-      end
+    def push(b64_device_token)
+        job = { 
+          :project => { 
+            :name => Config.project_name,
+            :certificate => Config.project_pem_location,
+          },
+          :sandbox => Config.project_use_sandbox,
+          :notification => self.payload,
+          :device_token => b64_device_token,
+        }
+        beanstalk = Beanstalk::Pool.new(Config.project_beanstalk_pool)
+        beanstalk.yput(job)
     end
 
     def to_bytes
