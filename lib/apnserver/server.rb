@@ -81,7 +81,7 @@ module ApnServer
 
       # TODO skip this file read unless necessary
       certificate_data = File.read(project[:certificate])
-
+      
       if notification
         client = get_client(project[:name], certificate_data, packet[:sandbox])
         begin

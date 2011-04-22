@@ -31,15 +31,25 @@ module ApnServer
     end
 
     def push(b64_device_token)
+        safe_payload = self.payload
+
+        # Force conversion to lower 127 bits - non-ascii characters appear to
+        # be cause EXPECTED_CRLF. Haven't looked further into the issue. FIXME.
+        if safe_payload[:aps].has_key? :alert
+          converter = Iconv.new('ASCII//IGNORE//TRANSLIT', 'UTF-8') 
+          safe_payload[:aps][:alert] = converter.iconv(safe_payload[:aps][:alert]).unpack('U*').select{ |cp| cp < 127 }.pack('U*')
+        end
+        
         job = { 
           :project => { 
             :name => Config.project_name,
             :certificate => Config.project_pem_location,
           },
           :sandbox => Config.project_use_sandbox,
-          :notification => self.payload,
+          :notification => safe_payload,
           :device_token => b64_device_token,
         }
+
         beanstalk = Beanstalk::Pool.new(Config.project_beanstalk_pool)
         beanstalk.yput(job)
     end
