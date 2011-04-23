@@ -1,4 +1,4 @@
-module ApnServer
+module Racoon
   module Payload
     PayloadInvalid = Class.new(RuntimeError)
 

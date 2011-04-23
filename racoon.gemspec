@@ -1,19 +1,19 @@
 Gem::Specification.new do |s|
-  s.name = %q{apnserver}
-  s.version = "0.3.0"
+  s.name = %q{racoon}
+  s.version = "0.3.1"
   s.platform    = Gem::Platform::RUBY
 
   s.authors = ["Jeremy Tregunna"]
-  s.date = %q{2011-03-27}
+  s.date = %q{2011-04-23}
   s.description = %q{A toolkit for proxying and sending Apple Push Notifications prepared for a hosted environment}
   s.email = %q{jeremy.tregunna@me.com}
-  s.executables = ["apnsend", "apnserverd"]
-  s.extra_rdoc_files = ["README.textile"]
-  s.files = Dir.glob("{bin,lib}/**/*") + %w(README.textile)
-  s.homepage = %q{https://github.com/jeremytregunna/apnserver}
+  s.executables = ["racoon-send", "racoond"]
+  s.extra_rdoc_files = ["README.mdown"]
+  s.files = Dir.glob("{bin,lib}/**/*") + %w(README.mdown)
+  s.homepage = %q{https://github.com/jeremytregunna/racoon}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubyforge_project = %q{apnserver}
+  s.rubyforge_project = %q{racoon}
   s.rubygems_version = %q{1.3.5}
   s.summary = %q{Apple Push Notification Toolkit for hosted environments}
   s.test_files = Dir.glob("spec/**/*")

@@ -2,17 +2,9 @@ require 'apnserver/payload'
 require 'base64'
 require 'yajl'
 
-module ApnServer
-  class Config
-    class << self
-      attr_accessor :logger
-    end
-  end
-
-  Config.logger = Logger.new("/dev/null")
-
+module Racoon
   class Notification
-    include ApnServer::Payload
+    include Racoon::Payload
 
     attr_accessor :device_token, :alert, :badge, :sound, :custom
 
@@ -30,18 +22,20 @@ module ApnServer
       j
     end
 
+=begin
     def push
       if Config.pem.nil?
         socket = TCPSocket.new(Config.host || 'localhost', Config.port.to_i || 22195)
         socket.write(to_bytes)
         socket.close
       else
-        client = ApnServer::Client.new(Config.pem, Config.host || 'gateway.push.apple.com', Config.port.to_i || 2195)
+        client = Racoon::Client.new(Config.pem, Config.host || 'gateway.push.apple.com', Config.port.to_i || 2195)
         client.connect!
         client.write(self)
         client.disconnect!
       end
     end
+=end
 
     def to_bytes
       j = json_payload

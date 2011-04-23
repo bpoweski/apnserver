@@ -5,21 +5,21 @@ require 'getoptlong'
 require 'rubygems'
 require 'daemons'
 require 'eventmachine'
-require 'apnserver'
-require 'apnserver/server'
+require 'racoon'
+require 'racoon/server'
 require 'csv'
 
 def usage
-  puts "Usage: apnserverd [switches] --beanstalk a.b.c.d:11300,...,w.x.y.z:11300"
+  puts "Usage: racoond [switches] --beanstalk a.b.c.d:11300,...,w.x.y.z:11300"
   puts " --beanstalk <127.0.0.1:11300>        csv list of ip:port for beanstalk servers"
-  puts " --pid </var/run/apnserverd.pid       the path to store the pid"
-  puts " --log </var/log/apnserverd.log       the path to store the log"
+  puts " --pid </var/run/racoond.pid>         the path to store the pid"
+  puts " --log </var/log/racoond.log>         the path to store the log"
   puts " --daemon                             to daemonize the server"
   puts " --help                               this message"
 end
 
 def daemonize
-  Daemonize.daemonize(@log_file, 'apnserverd')
+  Daemonize.daemonize(@log_file, 'racoond')
   open(@pid_file,"w") { |f| f.write(Process.pid) }
   open(@pid_file,"w") do |f|
     f.write(Process.pid)
@@ -36,8 +36,8 @@ opts = GetoptLong.new(
 )
 
 beanstalks = ["127.0.0.1:11300"]
-@pid_file = '/var/run/apnserverd.pid'
-@log_file = '/var/log/apnserverd.log'
+@pid_file = '/var/run/racoond.pid'
+@log_file = '/var/log/racoond.log'
 daemon = false
 
 opts.each do |opt, arg|
@@ -56,10 +56,10 @@ opts.each do |opt, arg|
   end
 end
 
-ApnServer::Config.logger = Logger.new(@log_file)
+Racoon::Config.logger = Logger.new(@log_file)
 
 daemonize if daemon
-server = ApnServer::Server.new(beanstalks) do |feedback_record|
-  ApnServer::Config.logger.info "Received feedback at #{feedback_record[:feedback_at]} (length: #{feedback_record[:length]}): #{feedback_record[:device_token]}"
+server = Racoon::Server.new(beanstalks) do |feedback_record|
+  Racoon::Config.logger.info "Received feedback at #{feedback_record[:feedback_at]} (length: #{feedback_record[:length]}): #{feedback_record[:device_token]}"
 end
 server.start!

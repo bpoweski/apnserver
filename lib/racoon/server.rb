@@ -1,6 +1,6 @@
 require 'beanstalk-client'
 
-module ApnServer
+module Racoon
   class Server
 
     attr_accessor :beanstalkd_uris, :feedback_callback
@@ -12,7 +12,11 @@ module ApnServer
     end
 
     def beanstalk
-      @@beanstalk ||= Beanstalk::Pool.new @beanstalkd_uris
+      return @@beanstalk if @@beanstalk
+      @@beanstalk = Beanstalk::Pool.new @beanstalkd_uris
+      %w{watch use}.each { |s| @@beanstalk.send(s, 'racoon') }
+      @@beanstalk.ignore('default')
+      @@beanstalk
     end
 
     def start!
@@ -53,7 +57,7 @@ module ApnServer
     #   :certificate => Certificate to use (Should be able to easily look this up in the DB)
     #   :receipt_uuid => UUID of the push receipt that was created when the API got the request
     #   :sandbox => Boolean value to use the sandbox servers or not (optional, defaults to false)
-    #   :notification => An ApnServer::Notification object, fully formed.
+    #   :notification => An Racoon::Notification object, fully formed.
     def handle_job(job)
       packet = job.ybody
       project = packet[:project]
@@ -87,7 +91,7 @@ module ApnServer
 
     def get_client(project_name, certificate, sandbox = false)
       uri = "gateway.#{sandbox ? 'sandbox.' : ''}push.apple.com"
-      @clients[project_name] ||= ApnServer::Client.new(certificate, uri)
+      @clients[project_name] ||= Racoon::Client.new(certificate, uri)
       client = @clients[project_name]
 
       # If the certificate has changed, but we still are connected using the old certificate,

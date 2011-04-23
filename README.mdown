@@ -1,0 +1,170 @@
+# Racoon push notification server
+
+This project started off as a fork of [apnserver](https://github.com/bpoweski/apnserver). It
+has since taken on a different path. How does it differ from apnserver? By a few key points:
+
+1. It implements the APNS feedback service;
+2. Uses Yajl for JSON encoding/decoding rather than ActiveSupport;
+3. Expects certificates as strings instead of paths to files;
+4. Does not assume there is only one certificate; and
+5. Receives packets containing notifications from beanstalkd instead of a listening socket.
+
+The above changes were made because of the need for an APNS provider to replace the current
+provider used by [Diligent Street](http://www.diligentstreet.com/) with something more robust. As such, it needs to be
+suitable for a hosted environment, where multiple—unrelated—users of the service will be
+using it.
+
+It should be noted that the development of this project is independent of the work bpoweski
+is doing on apnserver. If you're looking for that project, [go here](https://github.com/bpoweski/apnserver).
+
+## Description
+
+racoon is a server and a set of command line programs to send push notifications to iOS devices.
+Apple recommends to maintain an open connection to the push notification service, and refrain
+from opening up and tearing down SSL connections repeatedly. As such, a separate daemon is
+introduced that has messages queued up (beanstalkd) for consumption by this daemon. This
+decouples the APNS server from your backend system. Those notifications are sent over a
+persistent connection to Apple.
+
+## Remaining Tasks & Issues
+
+You can see progress by looking at the [issue tracker](https://www.pivotaltracker.com/projects/251991) page for fracas. Any labels related to
+*apnserver* or *racoon* are related to this subproject.
+
+## Preparing Certificates
+
+Certificates must be prepared before they can be used with racoon. Unfortunately, Apple
+gives us @.p12@ files instead of @.pem@ files. As such, we need to convert them. This
+can be accomplished by dropping to the command line and running this command:
+
+<pre>
+$ openssl pkcs12 -in cert.p12 -out cert.pem -nodes -clcerts
+</pre>
+
+This will generate a file suitable for use with this daemon, called @cert.pem@. If you're
+using frac.as, this is the file you would upload to the web service.
+
+If you're not using frac.as, then the contents of this file are what you need to use as
+your certificate, not the path to the file.
+
+## APN Server Daemon
+
+<pre>
+Usage: racoond [options]
+  --beanstalk <csv ip:port mappings>
+	The comma-separated list of ip:port for beanstalk servers
+
+  --pid <pid file path>
+	Path used for the PID file. Defaults to /var/run/apnserver.pid
+
+  --log <log file path>
+	Path used for the log file. Defaults to /var/log/apnserver.log
+
+  --help
+    usage message
+
+  --daemon
+    Runs process as daemon, not available on Windows
+</pre>
+
+## APN Server Client
+
+TODO: Document this
+
+## Sending Notifications from Ruby
+
+You need to set up a connection to the beanstalkd service. We can do this simply by defining
+the following method:
+
+```ruby
+def beanstalk
+  return @beanstalk if @beanstalk
+  @beanstalk = Beanstalk::Pool.new ["127.0.0.1:11300"]
+  @beanstalk.use "awesome-tube"
+  @beanstalk
+end
+```
+
+In this way, whenever we need access to beanstalk, we'll make the connection and set up to use
+the appropriate tube whether the connection is open yet or not.
+
+We will also need two pieces of information: A project, and a notification.
+
+### Project
+
+A project os comprised of a few pieces of information at a minimum (you may supply more if you
+wish, but racoond will ignore them):
+
+```ruby
+project = { :name => "Awesome project", :certificate => "contents of the generated .pem file" }
+```
+
+### Notification
+
+A notification is a ruby hash containing the things to be sent along, including the device token.
+An example notification may look like this:
+
+```ruby
+notification = { :device_token => "hex encoded device token",
+                 :aps => { :alert => "Some text",
+                           :sound => "Audio_file",
+                           :badge => 42 },
+                 :a_custom_key => "Any number of custom keys"
+               }
+```
+
+Finally within we can send a push notification using the following code:
+
+```ruby
+beanstalk.yput({ :project => project, :notification => notification, :sandbox => true })
+```
+
+Note that the `sandbox` parameter is used to indicate whether or not we're using a development
+certificate, and as such, should contact Apple's sandbox APN service instead of the production
+certificate. If left out, we assume production.
+
+This will schedule the push on beanstalkd. Racoon is constantly polling beanstalkd looking for
+ready jobs it can pop off and process (send to Apple). Using beanstalkd however allows us to
+queue up items, and during peak times, add another **N** more racoon servers to make up any
+backlog, to ensure our messages are sent fast, and that we can scale.
+
+## Installation
+
+Racoon is hosted on [rubygems](https://rubygems.org/gems/racoon)
+
+<pre>
+$ gem install racoon
+</pre>
+
+Adding racoon to your Rails application
+
+```ruby
+gem 'apnserver'
+```
+
+h2. License
+
+(The MIT License)
+
+Copyright (c) 2011 Jeremy Tregunna
+Copyright (c) 2011 Ben Poweski
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+

@@ -1,7 +1,7 @@
 require 'openssl'
 require 'socket'
 
-module ApnServer
+module Racoon
   class Client
     attr_accessor :pem, :host, :port, :password
 
