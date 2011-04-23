@@ -109,7 +109,9 @@ notification = { :device_token => "hex encoded device token",
                  :aps => { :alert => "Some text",
                            :sound => "Audio_file",
                            :badge => 42,
-                           :custom => "custom data, could be hash" }
+                           :custom => { :field => "lala",
+                                        :stuff => 42 }
+                         }
                }
 ```
 
