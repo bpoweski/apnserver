@@ -55,10 +55,10 @@ Usage: racoond [options]
 	The comma-separated list of ip:port for beanstalk servers
 
   --pid <pid file path>
-	Path used for the PID file. Defaults to /var/run/apnserver.pid
+	Path used for the PID file. Defaults to /var/run/racoon.pid
 
   --log <log file path>
-	Path used for the log file. Defaults to /var/log/apnserver.log
+	Path used for the log file. Defaults to /var/log/racoon.log
 
   --help
     usage message
