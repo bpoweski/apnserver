@@ -2,21 +2,22 @@ require 'beanstalk-client'
 
 module Racoon
   class Server
-
     attr_accessor :beanstalkd_uris, :feedback_callback
 
     def initialize(beanstalkd_uris = ["127.0.0.1:11300"], &feedback_blk)
+      @beanstalks = {}
       @clients = {}
       @feedback_callback = feedback_blk
       @beanstalkd_uris = beanstalkd_uris
     end
 
     def beanstalk(arg)
-      return @beanstalks[arg] if @beanstalks[arg]
-      @beanstalks[arg] = Beanstalk::Pool.new @beanstalkd_uris
-      %w{watch use}.each { |s| @beanstalks[arg].send(s, "racoon-#{arg}") }
-      @beanstalks[arg].ignore('default')
-      @beanstalks[arg]
+      tube = "racoon-#{arg}"
+      return @beanstalks[tube] if @beanstalks[tube]
+      @beanstalks[tube] = Beanstalk::Pool.new @beanstalkd_uris
+      %w{watch use}.each { |s| @beanstalks[tube].send(s, "racoon-#{tube}") }
+      @beanstalks[tube].ignore('default')
+      @beanstalks[tube]
     end
 
     def start!

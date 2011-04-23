@@ -1,4 +1,4 @@
-require 'apnserver/payload'
+require 'racoon/payload'
 require 'base64'
 require 'yajl'
 
