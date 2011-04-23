@@ -19,21 +19,21 @@ module ApnServer
 
     def start!
       EventMachine::run do
-        EventMachine::PeriodicTimer.new(28800) do
-          begin
-            @feedback_client = nil # Until we pull in DB support
-            @feedback_client.connect! unless @feedback_client.connected?
-            @feedback_client.read.each do |record|
-              feedback_callback.call record
-            end
-            @feedback_client.disconnect!
-          rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
-            Config.logger.error "(Feedback) Caught Error, closing connection"
-            @feedback_client.disconnect!
-          rescue RuntimeError => e
-            Config.logger.error "(Feedback) Unable to handle: #{e}"
-          end
-        end
+        #EventMachine::PeriodicTimer.new(28800) do
+          #begin
+            #@feedback_client = nil # Until we pull in DB support
+            #@feedback_client.connect! unless @feedback_client.connected?
+            #@feedback_client.read.each do |record|
+              #feedback_callback.call record
+            #end
+            #@feedback_client.disconnect!
+          #rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
+            #Config.logger.error "(Feedback) Caught Error, closing connection"
+            #@feedback_client.disconnect!
+          #rescue RuntimeError => e
+            #Config.logger.error "(Feedback) Unable to handle: #{e}"
+          #end
+        #end
 
         EventMachine::PeriodicTimer.new(1) do
           begin
@@ -83,25 +83,48 @@ module ApnServer
       certificate_data = File.read(project[:certificate])
       
       if notification
+
         client = get_client(project[:name], certificate_data, packet[:sandbox])
+
         begin
+
           Config.logger.debug "Connection already open" if client.connected?
-          client.connect! unless client.connected?
+
+          # TODO - FIXME - WTF Does Apple want us to do? Persist or tear-down?
+          # We can't seem to keep a server instance running for more than 1 day
+          # when we try to persist. UGH!
+
+          # Old - allow socket to persist
+          #client.connect! unless client.connected?
+          #client.write(notification)
+          #job.delete
+
+          # New - create and tear down a socket for each notification
+          client.connect!
           client.write(notification)
+          client.disconnect!
+
+          # Finished!
           job.delete
+
           Config.logger.info "Notification should've been deleted, keeping socket open."
+
           # TODO: Find the receipt and update the sent_at property.
           #if receipt = PushLog[packet[:receipt_uuid]]
           #  receipt.sent_at = Time.now.to_i.to_s
           #  receipt.save
           #end
+
         rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
+
           Config.logger.error "Caught Error, closing connecting and adding notification back to queue."
-          client.disconnect!
+          client.disconnect! if client.connected?
           # Queue back up the notification
           job.release
           Config.logger.info "Notification should've been released."
+
         rescue RuntimeError => e
+
           Config.logger.error "Unable to handle: #{e}"
           # TODO: Find the receipt and write the failed_at property.
           #if receipt = PushLog[packet[:receipt_uuid]]
