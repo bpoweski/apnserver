@@ -11,7 +11,8 @@ module Racoon
     def payload
       p = Hash.new
       [:badge, :alert, :sound, :custom].each do |k|
-        p[k] = send(k) if send(k)
+        r = send(k)
+        p[k] = r if r
       end
       create_payload(p)
     end

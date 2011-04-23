@@ -59,38 +59,46 @@ module Racoon
 
     private
 
-    # Received a notification. The job's body should be a YAML encoded hash containing the following keys:
-    #   :project_name => The name of the project
-    #   :certificate => Certificate to use (Should be able to easily look this up in the DB)
-    #   :receipt_uuid => UUID of the push receipt that was created when the API got the request
-    #   :sandbox => Boolean value to use the sandbox servers or not (optional, defaults to false)
-    #   :notification => An Racoon::Notification object, fully formed.
+    # Received a notification. job is YAML encoded hash in the following format:
+    # job = {
+    #   :project => {
+    #     :name => "Foo",
+    #     :certificate => "contents of a certificate.pem"
+    #   },
+    #   :device_token => "0f21ab...def",
+    #   :notification => notification.json_payload,
+    #   :sandbox => true # Development environment?
+    # }
     def handle_job(job)
       packet = job.ybody
       project = packet[:project]
-      if notification = Notification.new.create_payload(packet[:notification])
+
+      aps = packet[:notification][:aps]
+
+      notification = Notification.new
+      notification.device_token = packet[:device_token]
+      notification.badge = aps[:badge] if aps.has_key? :badge
+      notification.alert = aps[:alert] if aps.has_key? :alert
+      notification.sound = aps[:sound] if aps.has_key? :sound
+      notification.custom = aps[:custom] if aps.has_key? :custom
+
+      if notification
         client = get_client(project[:name], project[:certificate], packet[:sandbox])
         begin
           client.connect! unless client.connected?
           client.write(notification)
+
           job.delete
-          # TODO: Find the receipt and update the sent_at property.
-          #if receipt = PushLog[packet[:receipt_uuid]]
-          #  receipt.sent_at = Time.now.to_i.to_s
-          #  receipt.save
-          #end
         rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
           Config.logger.error "Caught Error, closing connecting and adding notification back to queue"
+
           client.disconnect!
+
           # Queue back up the notification
           job.release
         rescue RuntimeError => e
           Config.logger.error "Unable to handle: #{e}"
-          # TODO: Find the receipt and write the failed_at property.
-          #if receipt = PushLog[packet[:receipt_uuid]]
-          #  receipt.failed_at = Time.now.to_i.to_s
-          #  receipt.save
-          #end
+
           job.delete
         end
       end
