@@ -57,6 +57,7 @@ opts.each do |opt, arg|
 end
 
 ApnServer::Config.logger = Logger.new(@log_file)
+ApnServer::Config.logger.level = Logger::DEBUG
 
 daemonize if daemon
 server = ApnServer::Server.new(beanstalks) do |feedback_record|
