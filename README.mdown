@@ -139,7 +139,7 @@ $ gem install racoon
 Adding racoon to your Rails application
 
 ```ruby
-gem 'apnserver'
+gem 'racoon'
 ```
 
 h2. License
