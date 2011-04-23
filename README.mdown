@@ -142,7 +142,7 @@ Adding racoon to your Rails application
 gem 'racoon'
 ```
 
-h2. License
+## License
 
 (The MIT License)
 
