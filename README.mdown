@@ -108,8 +108,8 @@ An example notification may look like this:
 notification = { :device_token => "hex encoded device token",
                  :aps => { :alert => "Some text",
                            :sound => "Audio_file",
-                           :badge => 42 },
-                 :a_custom_key => "Any number of custom keys"
+                           :badge => 42,
+                           :custom => "custom data, could be hash" }
                }
 ```
 
