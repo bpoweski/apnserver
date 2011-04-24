@@ -4,16 +4,17 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'logger'
 require 'getoptlong'
 require 'rubygems'
-require 'apnserver'
+require 'racoon'
 require 'base64'
 require 'socket'
+require 'yajl'
+require 'csv'
+require 'beanstalk-client'
 
 def usage
-  puts "Usage: apnsend [switches] (--b64-token | --hex-token) <token>"
-  puts " --server <localhost>                 the apn server defaults to a locally running apnserverd"
-  puts " --port <2195>                        the port of the apn server"
+  puts "Usage: racoon-send [switches] (--b64-token | --hex-token) <token>"
+  puts " --beanstalk <127.0.0.1:11300>        csv of ip:port for beanstalk servers"
   puts " --pem <path>                         the path to the pem file, if a pem is supplied the server defaults to gateway.push.apple.com:2195"
-  puts " --pem-passphrase <passphrase>        the pem passphrase"
   puts " --alert <message>                    the message to send"
   puts " --sound <default>                    the sound to play, defaults to 'default'"
   puts " --badge <number>                     the badge number"
@@ -24,34 +25,30 @@ def usage
 end
 
 opts = GetoptLong.new(
-  ["--server", "-s", GetoptLong::REQUIRED_ARGUMENT],
-  ["--port", "-p", GetoptLong::REQUIRED_ARGUMENT],
+  ["--beanstalk", "-b", GetoptLong::REQUIRED_ARGUMENT],
   ["--pem", "-c", GetoptLong::REQUIRED_ARGUMENT],
-  ["--pem-passphrase", "-C", GetoptLong::REQUIRED_ARGUMENT],
   ["--alert", "-a", GetoptLong::REQUIRED_ARGUMENT],
   ["--sound", "-S", GetoptLong::REQUIRED_ARGUMENT],
-  ["--badge", "-b", GetoptLong::REQUIRED_ARGUMENT],
+  ["--badge", "-n", GetoptLong::REQUIRED_ARGUMENT],
   ["--custom", "-j", GetoptLong::REQUIRED_ARGUMENT],
   ["--b64-token", "-B", GetoptLong::REQUIRED_ARGUMENT],
   ["--hex-token", "-H", GetoptLong::REQUIRED_ARGUMENT],
   ["--help", "-h", GetoptLong::NO_ARGUMENT]
 )
 
-notification = ApnServer::Notification.new
+beanstalks = ["127.0.0.1:11300"]
+certificate = nil
+notification = Racoon::Notification.new
 
 opts.each do |opt, arg|
   case opt
   when '--help'
     usage
     exit
-  when '--server'
-    ApnServer::Config.host = arg
-  when '--port'
-    ApnServer::Config.port = arg.to_i
+  when '--beanstalk'
+    beanstalks = CSV.parse(arg)[0]
   when '--pem'
-    ApnServer::Config.pem = File.read(arg)
-  when '--pem-passphrase'
-    ApnServer::Config.password = arg
+    certificate = File.read(arg)
   when '--alert'
     notification.alert = arg
   when '--sound'
@@ -59,11 +56,11 @@ opts.each do |opt, arg|
   when '--badge'
     notification.badge = arg.to_i
   when '--custom'
-    notification.custom = ActiveSupport::JSON.decode(arg)
+    notification.custom = Yajl::Parser.parse(arg)
   when '--b64-token'
     notification.device_token = Base64::decode64(arg)
   when '--hex-token'
-    notification.device_token  = arg.scan(/[0-9a-f][0-9a-f]/).map {|s| s.hex.chr}.join
+    notification.device_token = arg.scan(/[0-9a-f][0-9a-f]/).map {|s| s.hex.chr}.join
   end
 end
 
@@ -71,5 +68,9 @@ if notification.device_token.nil?
   usage
   exit
 else
-  notification.push
+  bs = Beanstalk::Pool.new beanstalks
+  %w{use watch}.each { |s| bs.send(s, "racoon-apns") }
+  bs.ignore("default")
+  project = { :name => "test", :certificate => certificate }
+  bs.yput({ :project => project, :notification => notification.payload, :device_token => notification.device_token, :sandbox => true })
 end
