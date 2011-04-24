@@ -15,8 +15,6 @@ module Racoon
       tube = "racoon-#{arg}"
       return @beanstalks[tube] if @beanstalks[tube]
       @beanstalks[tube] = Beanstalk::Pool.new @beanstalkd_uris
-      %w{watch use}.each { |s| @beanstalks[tube].send(s, "racoon-#{tube}") }
-      @beanstalks[tube].ignore('default')
       @beanstalks[tube]
     end
 
@@ -24,8 +22,11 @@ module Racoon
       EventMachine::run do
         EventMachine::PeriodicTimer.new(3600) do
           begin
-            if beanstalk('feedback').peek_ready
-              item = beanstalk('feedback').reserve(1)
+            b = beanstalk('feedback')
+            %w{watch use}.each { |s| b.send(s, "racoon-feedback") }
+            b.ignore('default')
+            if b.peek_ready
+              item = b.reserve(1)
               handle_feedback(item)
             end
           rescue Beanstalk::TimedOut
@@ -51,8 +52,11 @@ module Racoon
 
         EventMachine::PeriodicTimer.new(1) do
           begin
-            if beanstalk('apns').peek_ready
-              item = beanstalk('apns').reserve(1)
+            b = beanstalk('apns')
+            %w{watch use}.each { |s| b.send(s, "racoon-apns") }
+            b.ignore('default')
+            if b.peek_ready
+              item = b.reserve(1)
               handle_job item
             end
           rescue Beanstalk::TimedOut

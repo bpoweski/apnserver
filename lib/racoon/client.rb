@@ -31,7 +31,9 @@ module Racoon
     end
 
     def write(notification)
-      Config.logger.debug "#{Time.now} [#{host}:#{port}] Device: #{notification.device_token.unpack('H*')} sending #{notification.json_payload}"
+      if host.include? "sandbox"
+        Config.logger.debug "#{Time.now} [#{host}:#{port}] Device: #{notification.device_token.unpack('H*')} sending #{notification.json_payload}"
+      end
       @ssl.write(notification.to_bytes)
     end
 
