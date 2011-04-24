@@ -75,7 +75,7 @@ module Racoon
     #     :certificate => "contents of a certificate.pem"
     #   },
     #   :device_token => "0f21ab...def",
-    #   :notification => notification.json_payload,
+    #   :notification => notification.payload,
     #   :sandbox => true # Development environment?
     # }
     def handle_job(job)
