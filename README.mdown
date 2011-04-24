@@ -34,14 +34,14 @@ You can see progress by looking at the [issue tracker](https://www.pivotaltracke
 ## Preparing Certificates
 
 Certificates must be prepared before they can be used with racoon. Unfortunately, Apple
-gives us @.p12@ files instead of @.pem@ files. As such, we need to convert them. This
+gives us *.p12* files instead of *.pem* files. As such, we need to convert them. This
 can be accomplished by dropping to the command line and running this command:
 
 <pre>
 $ openssl pkcs12 -in cert.p12 -out cert.pem -nodes -clcerts
 </pre>
 
-This will generate a file suitable for use with this daemon, called @cert.pem@. If you're
+This will generate a file suitable for use with this daemon, called *cert.pem*. If you're
 using frac.as, this is the file you would upload to the web service.
 
 If you're not using frac.as, then the contents of this file are what you need to use as
@@ -80,7 +80,7 @@ the following method:
 def beanstalk
   return @beanstalk if @beanstalk
   @beanstalk = Beanstalk::Pool.new ["127.0.0.1:11300"]
-  @beanstalk.use "awesome-tube"
+  @beanstalk.use "racoon-apns"
   @beanstalk
 end
 ```
@@ -89,6 +89,9 @@ In this way, whenever we need access to beanstalk, we'll make the connection and
 the appropriate tube whether the connection is open yet or not.
 
 We will also need two pieces of information: A project, and a notification.
+
+**Note that the tube should always be "racoon-apns". The server won't look on any other tube for
+push notifications.**
 
 ### Project
 
@@ -105,8 +108,7 @@ A notification is a ruby hash containing the things to be sent along, including 
 An example notification may look like this:
 
 ```ruby
-notification = { :device_token => "hex encoded device token",
-                 :aps => { :alert => "Some text",
+notification = { :aps => { :alert => "Some text",
                            :sound => "Audio_file",
                            :badge => 42,
                            :custom => { :field => "lala",
@@ -118,7 +120,11 @@ notification = { :device_token => "hex encoded device token",
 Finally within we can send a push notification using the following code:
 
 ```ruby
-beanstalk.yput({ :project => project, :notification => notification, :sandbox => true })
+beanstalk.yput({ :project => project,
+                 :notification => notification,
+                 :device_token => "binary encoded token",
+                 :sandbox => true
+})
 ```
 
 Note that the `sandbox` parameter is used to indicate whether or not we're using a development
