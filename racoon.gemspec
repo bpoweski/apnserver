@@ -7,7 +7,7 @@ Gem::Specification.new do |s|
   s.date = %q{2011-04-23}
   s.description = %q{A toolkit for proxying and sending Apple Push Notifications prepared for a hosted environment}
   s.email = %q{jeremy.tregunna@me.com}
-  s.executables = ["racoon-send", "racoond"]
+  s.executables = ["racoond"]
   s.extra_rdoc_files = ["README.mdown"]
   s.files = Dir.glob("{bin,lib}/**/*") + %w(README.mdown)
   s.homepage = %q{https://github.com/jeremytregunna/racoon}
