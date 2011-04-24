@@ -2,19 +2,9 @@ GEM
   remote: http://rubygems.org/
   specs:
     beanstalk-client (1.1.0)
-    cassandra (0.9.1)
-      json
-      rake
-      simple_uuid (>= 0.1.0)
-      thrift_client (>= 0.6.0)
     daemons (1.0.10)
     diff-lcs (1.1.2)
     eventmachine (0.12.10)
-    fracassandra (0.3.4)
-      cassandra
-      cassandra
-    json (1.5.1)
-    rake (0.8.7)
     rspec (2.3.0)
       rspec-core (~> 2.3.0)
       rspec-expectations (~> 2.3.0)
@@ -23,10 +13,6 @@ GEM
     rspec-expectations (2.3.0)
       diff-lcs (~> 1.1.2)
     rspec-mocks (2.3.0)
-    simple_uuid (0.1.2)
-    thrift (0.5.0)
-    thrift_client (0.6.0)
-      thrift (~> 0.5.0)
     yajl-ruby (0.8.1)
 
 PLATFORMS
@@ -36,6 +22,5 @@ DEPENDENCIES
   beanstalk-client
   daemons
   eventmachine
-  fracassandra (>= 0.3.4)
   rspec
   yajl-ruby
