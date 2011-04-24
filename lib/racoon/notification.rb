@@ -23,21 +23,6 @@ module Racoon
       j
     end
 
-=begin
-    def push
-      if Config.pem.nil?
-        socket = TCPSocket.new(Config.host || 'localhost', Config.port.to_i || 22195)
-        socket.write(to_bytes)
-        socket.close
-      else
-        client = Racoon::Client.new(Config.pem, Config.host || 'gateway.push.apple.com', Config.port.to_i || 2195)
-        client.connect!
-        client.write(self)
-        client.disconnect!
-      end
-    end
-=end
-
     def to_bytes
       j = json_payload
       [0, 0, device_token.size, device_token, 0, j.size, j].pack("ccca*cca*")
