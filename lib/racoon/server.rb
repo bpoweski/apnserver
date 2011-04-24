@@ -33,14 +33,19 @@ module Racoon
           end
         end
 
+        # Every minute,poll all the clients, ensuring they've been inactive for 20+ minutes.
         EventMachine::PeriodicTimer.new(60) do
-          begin
-            if beanstalk('killer').peek_ready
-              item = beanstalk('killer').reserve(1)
-              purge_client(item)
+          remove_clients = []
+
+          @clients.each_pair do |project_name, packet|
+            if Time.now - packet[:timestamp] >= 1200 # 20 minutes
+              packet[:connection].disconnect!
+              remove_clients << project_name
             end
-          rescue Beanstalk::TimedOut
-            Config.logger.info "(Beanstalkd) Unable to secure a job, operation timed out."
+          end
+
+          remove_clients.each do |project_name|
+            @clients[project_name] = nil
           end
         end
 
@@ -84,15 +89,17 @@ module Racoon
 
       if notification
         client = get_client(project[:name], project[:certificate], packet[:sandbox])
+        connection = client[:connection]
         begin
-          client.connect! unless client.connected?
-          client.write(notification)
+          connection.connect! unless connection.connected?
+          connection.write(notification)
+          @clients[project[:name]][:timestamp] = Time.now
 
           job.delete
         rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
           Config.logger.error "Caught Error, closing connecting and adding notification back to queue"
 
-          client.disconnect!
+          connection.disconnect!
 
           # Queue back up the notification
           job.release
@@ -127,22 +134,22 @@ module Racoon
       end
     end
 
+    # Returns a hash containing a timestamp referring to when the connection was opened.
+    # This timestamp will be updated to reflect when there was last activity over the socket.
     def get_client(project_name, certificate, sandbox = false)
       uri = "gateway.#{sandbox ? 'sandbox.' : ''}push.apple.com"
       unless @clients[project_name]
-        @clients[project_name] = Racoon::Client.new(certificate, uri)
-        # in 18 hours (64800 seconds) we need to schedule this socket to be killed. Long opened
-        # sockets don't work.
-        beanstalk('killer').yput({:certificate => certificate, :sandbox => sandbox}, 65536, 64800)
+        @clients[project_name] = { :timestamp => Time.now, :connection => Racoon::Client.new(certificate, uri) }
       end
-      @clients[project_name] ||= Racoon::Client.new(certificate, uri)
+      @clients[project_name] ||= { :timestamp => Time.now, :connection => Racoon::Client.new(certificate, uri) }
       client = @clients[project_name]
+      connection = client[:connection]
 
       # If the certificate has changed, but we still are connected using the old certificate,
       # disconnect and reconnect.
-      unless client.pem.eql?(certificate)
-        client.disconnect! if client.connected?
-        @clients[project_name] = Racoon::Client.new(certificate, uri)
+      unless connection.pem.eql?(certificate)
+        connection.disconnect! if connection.connected?
+        @clients[project_name] = { :timestamp => Time.now, :connection => Racoon::Client.new(certificate, uri) }
         client = @clients[project_name]
       end
 
