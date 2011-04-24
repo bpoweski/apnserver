@@ -122,10 +122,15 @@ Finally within we can send a push notification using the following code:
 ```ruby
 beanstalk.yput({ :project => project,
                  :notification => notification,
+                 :send_at => Time.mktime(2012, 12, 21, 4, 15)
                  :device_token => "binary encoded token",
                  :sandbox => true
 })
 ```
+
+This will construct a notification which is to be scheduled to be delivered on December 21st,
+2012 at 4:15 AM localtime to the server. That is, if the server's timezone is UTC, you must
+account for that in your client application.
 
 Note that the `sandbox` parameter is used to indicate whether or not we're using a development
 certificate, and as such, should contact Apple's sandbox APN service instead of the production

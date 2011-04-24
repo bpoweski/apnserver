@@ -6,7 +6,11 @@ module Racoon
   class Notification
     include Racoon::Payload
 
-    attr_accessor :device_token, :alert, :badge, :sound, :custom
+    attr_accessor :device_token, :alert, :badge, :sound, :custom, :send_at
+
+    def initialize
+      @send_at = Time.now
+    end
 
     def payload
       p = Hash.new
