@@ -28,8 +28,7 @@ persistent connection to Apple.
 
 ## Remaining Tasks & Issues
 
-You can see progress by looking at the [issue tracker](https://www.pivotaltracker.com/projects/251991) page for fracas. Any labels related to
-*apnserver* or *racoon* are related to this subproject.
+You can see progress by looking at the [issue tracker](https://www.pivotaltracker.com/projects/279053).
 
 ## Preparing Certificates
 
