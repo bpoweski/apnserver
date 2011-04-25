@@ -1,12 +1,11 @@
 require 'apnserver/payload'
 require 'base64'
-require 'active_support/ordered_hash'
-require 'active_support/json'
+require 'yajl'
 
 module ApnServer
   class Config
     class << self
-      attr_accessor :host, :port, :pem, :password, :logger
+      attr_accessor :logger, :project_name, :project_beanstalk_pool, :project_pem_location, :project_use_sandbox
     end
   end
 
@@ -26,22 +25,33 @@ module ApnServer
     end
 
     def json_payload
-      j = ActiveSupport::JSON.encode(payload)
+      j = Yajl::Encoder.encode(payload)
       raise PayloadInvalid.new("The payload is larger than allowed: #{j.length}") if j.size > 256
       j
     end
 
-    def push
-      if Config.pem.nil?
-        socket = TCPSocket.new(Config.host || 'localhost', Config.port.to_i || 22195)
-        socket.write(to_bytes)
-        socket.close
-      else
-        client = ApnServer::Client.new(Config.pem, Config.host || 'gateway.push.apple.com', Config.port.to_i || 2195)
-        client.connect!
-        client.write(self)
-        client.disconnect!
-      end
+    def push(b64_device_token)
+        safe_payload = self.payload
+
+        # Force conversion to lower 127 bits - non-ascii characters appear to
+        # be cause EXPECTED_CRLF. Haven't looked further into the issue. FIXME.
+        if safe_payload[:aps].has_key? :alert
+          converter = Iconv.new('ASCII//IGNORE//TRANSLIT', 'UTF-8') 
+          safe_payload[:aps][:alert] = converter.iconv(safe_payload[:aps][:alert]).unpack('U*').select{ |cp| cp < 127 }.pack('U*')
+        end
+        
+        job = { 
+          :project => { 
+            :name => Config.project_name,
+            :certificate => Config.project_pem_location,
+          },
+          :sandbox => Config.project_use_sandbox,
+          :notification => safe_payload,
+          :device_token => b64_device_token,
+        }
+
+        beanstalk = Beanstalk::Pool.new(Config.project_beanstalk_pool)
+        beanstalk.yput(job)
     end
 
     def to_bytes
@@ -55,9 +65,11 @@ module ApnServer
       rescue PayloadInvalid => p
         Config.logger.error "PayloadInvalid: #{p}"
         false
-      rescue RuntimeError
+      rescue RuntimeError => r
+        Config.logger.error "Runtime error: #{r}"
         false
       rescue Exception => e
+        Config.logger.error "Unknown error: #{e}"
         false
       end
     end
@@ -77,7 +89,7 @@ module ApnServer
       # parse json payload
       payload_len = buffer.slice!(0, 2).unpack('CC')
       j = buffer.slice!(0, payload_len.last)
-      result = ActiveSupport::JSON.decode(j)
+      result = Yajl::Parser.parse(j)
 
       ['alert', 'badge', 'sound'].each do |k|
         notification.send("#{k}=", result['aps'][k]) if result['aps'] && result['aps'][k]

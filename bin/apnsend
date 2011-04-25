@@ -49,7 +49,7 @@ opts.each do |opt, arg|
   when '--port'
     ApnServer::Config.port = arg.to_i
   when '--pem'
-    ApnServer::Config.pem = arg
+    ApnServer::Config.pem = File.read(arg)
   when '--pem-passphrase'
     ApnServer::Config.password = arg
   when '--alert'
