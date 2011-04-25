@@ -72,5 +72,9 @@ else
   %w{use watch}.each { |s| bs.send(s, "racoon-apns") }
   bs.ignore("default")
   project = { :name => "test", :certificate => certificate }
-  bs.yput({ :project => project, :notification => notification.payload, :device_token => notification.device_token, :sandbox => true })
+  bs.yput({ :project => project,
+            :notification => notification.payload,
+            :device_token => notification.device_token,
+            :sandbox => true
+  })
 end
