@@ -75,5 +75,20 @@ module Racoon
 
       notification
     end
+
+    def self.create_from_packet(packet)
+      aps = packet[:notification][:aps]
+
+      notification = Notification.new
+      notification.identifier = packet[:identifier]
+      notification.expiry = packet[:expiry]
+      notification.device_token = packet[:device_token]
+      notification.badge = aps[:badge] if aps.has_key? :badge
+      notification.alert = aps[:alert] if aps.has_key? :alert
+      notification.sound = aps[:sound] if aps.has_key? :sound
+      notification.custom = aps[:custom] if aps.has_key? :custom
+
+      notification
+    end
   end
 end
