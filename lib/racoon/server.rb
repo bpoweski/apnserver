@@ -50,15 +50,17 @@ module Racoon
           end
         end
 
-        EventMachine::PeriodicTimer.new(1) do
+        EventMachine::PeriodicTimer.new(2) do
           begin
             b = beanstalk('apns')
             %w{watch use}.each { |s| b.send(s, "racoon-apns") }
             b.ignore('default')
-            if b.peek_ready
+            jobs = []
+            until b.peek_ready.nil?
               item = b.reserve(1)
-              handle_job item
+              jobs << item
             end
+            handle_jobs jobs if jobs.count > 0
           rescue Beanstalk::TimedOut
             Config.logger.info "(Beanstalkd) Unable to secure a job, operation timed out."
           end
@@ -78,39 +80,44 @@ module Racoon
     #   :notification => notification.payload,
     #   :sandbox => true # Development environment?
     # }
-    def handle_job(job)
-      packet = job.ybody
-      project = packet[:project]
+    def handle_jobs(jobs)
+      connections = {}
+      jobs.each do |job|
+        packet = job.ybody
+        project = packet[:project]
 
-      aps = packet[:notification][:aps]
-
-      notification = Notification.new
-      notification.device_token = packet[:device_token]
-      notification.badge = aps[:badge] if aps.has_key? :badge
-      notification.alert = aps[:alert] if aps.has_key? :alert
-      notification.sound = aps[:sound] if aps.has_key? :sound
-      notification.custom = aps[:custom] if aps.has_key? :custom
-
-      if notification
         client = get_client(project[:name], project[:certificate], packet[:sandbox])
-        connection = client[:connection]
-        begin
-          connection.connect! unless connection.connected?
-          connection.write(notification)
-          @clients[project[:name]][:timestamp] = Time.now
+        conn = client[:connection]
+        connections[conn] ||= []
 
-          job.delete
-        rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
-          Config.logger.error "Caught Error, closing connecting and adding notification back to queue"
+        notification = create_notification_from_packet(packet)
 
-          connection.disconnect!
+        connections[conn] << { :job => job, :notification => notification }
+      end
 
-          # Queue back up the notification
-          job.release
-        rescue RuntimeError => e
-          Config.logger.error "Unable to handle: #{e}"
+      connections.each_pair do |conn, tasks|
+        conn.connect! unless conn.connected?
+        tasks.each do |data|
+          job = data[:job]
+          notif = data[:notification]
 
-          job.delete
+          begin
+            conn.write(notif)
+            @clients[project[:name]][:timestamp] = Time.now
+
+            # TODO: Listen for error responses from Apple
+            job.delete
+          rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
+            Config.logger.error "Caught error, closing connection and adding notification back to queue"
+
+            connection.disconnect!
+
+            job.release
+          rescue RuntimeError => e
+            Config.logger.error "Unable to handle: #{e}"
+
+            job.delete
+          end
         end
       end
     end
@@ -166,6 +173,21 @@ module Racoon
       client.disconnect! if client
       @clients[project_name] = nil
       job.delete
+    end
+
+    def create_notification_from_packet(packet)
+      aps = packet[:notification][:aps]
+
+      notification = Notification.new
+      notification.identifier = packet[:identifier]
+      notification.expiry = packet[:expiry]
+      notification.device_token = packet[:device_token]
+      notification.badge = aps[:badge] if aps.has_key? :badge
+      notification.alert = aps[:alert] if aps.has_key? :alert
+      notification.sound = aps[:sound] if aps.has_key? :sound
+      notification.custom = aps[:custom] if aps.has_key? :custom
+
+      notification
     end
   end
 end

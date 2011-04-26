@@ -6,9 +6,10 @@ module Racoon
   class Notification
     include Racoon::Payload
 
-    attr_accessor :device_token, :alert, :badge, :sound, :custom, :send_at
+    attr_accessor :identifier, :expiry, :device_token, :alert, :badge, :sound, :custom, :send_at, :expiry
 
     def initialize
+      @expiry = 0
       @send_at = Time.now
     end
 
@@ -29,7 +30,7 @@ module Racoon
 
     def to_bytes
       j = json_payload
-      [0, 0, device_token.size, device_token, 0, j.size, j].pack("ccca*cca*")
+      [1, identifier, expiry.to_i, device_token.size, device_token, j.size, j].pack("cNNna*na*")
     end
 
     def self.valid?(p)
@@ -51,23 +52,25 @@ module Racoon
       buffer = p.dup
       notification = Notification.new
 
-      header = buffer.slice!(0, 3).unpack('ccc')
-      if header[0] != 0
-        raise RuntimeError.new("Header of notification is invalid: #{header.inspect}")
-      end
+      header = buffer.slice!(0, 11).unpack("cNNn")
+      raise RuntimeError.new("Header of notification is invalid: #{header.inspect}") if header[0] != 1
 
-      # parse token
-      notification.device_token = buffer.slice!(0, 32).unpack('a*').first
+      # identifier
+      notification.identifier = header[1]
+      notification.expiry = header[2]
 
-      # parse json payload
-      payload_len = buffer.slice!(0, 2).unpack('CC')
+      # device token
+      notification.device_token = buffer.slice!(0, 32).unpack("a*").first
+
+      # JSON payload
+      payload_len = buffer.slice!(0, 2).unpack("n")
       j = buffer.slice!(0, payload_len.last)
       result = Yajl::Parser.parse(j)
 
       ['alert', 'badge', 'sound'].each do |k|
         notification.send("#{k}=", result['aps'][k]) if result['aps'] && result['aps'][k]
       end
-      result.delete('aps')
+      result.delete("aps")
       notification.custom = result
 
       notification
