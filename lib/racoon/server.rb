@@ -62,7 +62,7 @@ module Racoon
     #   :notification => notification.payload,
     #   :sandbox => true # Development environment?
     # }
-    def handle_job(jobs)
+    def handle_job(job)
       packet = job.ybody
       project = packet[:project]
 
