@@ -30,7 +30,6 @@ module Racoon
 
     def to_bytes
       j = json_payload
-      p [1, identifier, expiry.to_i, device_token.size, device_token, j.size, j]
       [1, identifier, expiry.to_i, device_token.size, device_token, j.size, j].pack("cNNna*na*")
     end
 

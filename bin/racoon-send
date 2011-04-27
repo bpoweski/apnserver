@@ -73,6 +73,7 @@ else
   bs.ignore("default")
   project = { :name => "test", :certificate => certificate }
   bs.yput({ :project => project,
+            :identifier => 1,
             :notification => notification.payload,
             :device_token => notification.device_token,
             :sandbox => true
