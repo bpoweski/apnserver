@@ -72,8 +72,7 @@ module Racoon
         client = get_client(project[:name], project[:certificate], packet[:sandbox])
 
         begin
-          p client
-          p notification
+          client.connect! unless client.connected?
           client.write(notification)
 
           # TODO: Listen for error responses from Apple
