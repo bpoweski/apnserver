@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = %q{racoon}
-  s.version = "0.4.0"
+  s.version = "0.4.1"
   s.platform    = Gem::Platform::RUBY
 
   s.authors = ["Jeremy Tregunna"]
