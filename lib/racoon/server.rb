@@ -118,6 +118,7 @@ module Racoon
       uri = "gateway.#{sandbox ? 'sandbox.' : ''}push.apple.com"
       @clients[project_name] ||= Racoon::Client.new(certificate, uri)
       client = @clients[project_name]
+      p client
 
       # If the certificate has changed, but we still are connected using the old certificate,
       # disconnect and reconnect.
@@ -127,6 +128,7 @@ module Racoon
         client = @clients[project_name]
       end
 
+      p client
       client
     end
 
