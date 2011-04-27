@@ -82,7 +82,7 @@ module Racoon
 
       notification = Notification.new
       notification.identifier = packet[:identifier]
-      notification.expiry = packet[:expiry]
+      notification.expiry = packet[:expiry] || 0
       notification.device_token = packet[:device_token]
       notification.badge = aps[:badge] if aps.has_key? :badge
       notification.alert = aps[:alert] if aps.has_key? :alert
