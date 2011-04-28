@@ -4,19 +4,24 @@
 # This module contains the worker which processes notifications before sending them off
 # down to the firehose.
 
+require 'eventmachine'
+require 'ffi-rzmq'
+
 module Racoon
   class Worker
-    def initialize(beanstalk_uris, context = ZMQ::Context.new(1), address = "tcp://*:11555")
+    def initialize(beanstalk_uris, address = "tcp://*:11555", context = ZMQ::Context.new(1))
       @beanstalk_uris = beanstalk_uris
       @context = context
       @firehose = context.socket(ZMQ::PUSH)
-      @firehose.connect(address)
+      @address = address
       # First packet, send something silly, the firehose ignores it
       @send_batch = true
     end
     
     def start!
       EventMachine::run do
+        @firehose.connect(@address)
+
         if @send_batch
           @send_batch = false
           @firehose.send_string("")
