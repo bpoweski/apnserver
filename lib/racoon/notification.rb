@@ -1,3 +1,8 @@
+# Racoon - A distributed APNs provider
+# Copyright (c) 2011, Jeremy Tregunna, All Rights Reserved.
+#
+# This module contains the class that represents notifications and all their details.
+
 require 'racoon/payload'
 require 'base64'
 require 'yajl'
@@ -6,11 +11,10 @@ module Racoon
   class Notification
     include Racoon::Payload
 
-    attr_accessor :identifier, :expiry, :device_token, :alert, :badge, :sound, :custom, :send_at, :expiry
+    attr_accessor :identifier, :expiry, :device_token, :alert, :badge, :sound, :custom, :expiry
 
     def initialize
       @expiry = 0
-      @send_at = Time.now
     end
 
     def payload
