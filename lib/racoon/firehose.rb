@@ -5,18 +5,22 @@
 # connections to Apple, and sending data over the right ones.
 
 require 'digest/sha1'
+require 'eventmachine'
+require 'ffi-rzmq'
 
 module Racoon
   class Firehose
-    def initialize(context = ZMQ::Context.new(1), address = "tcp://*:11555")
+    def initialize(address = "tcp://*:11555", context = ZMQ::Context.new(1))
       @connections = {}
       @context = context
       @firehose = context.socket(ZMQ::PULL)
-      @firehose.bind(address)
+      @address = address
     end
 
     def start!
       EventMachine::run do
+        @firehose.bind(@address)
+
         apns = EventMachine.spawn do |project, bytes|
           uri = "gateway.#{project[:sandbox] ? 'sandbox.' : ''}push.apple.com"
           hash = project_hash(project)
@@ -40,7 +44,7 @@ module Racoon
           @firehose.recv(received_message, ZMQ::NOBLOCK)
           json_string = received_message.copy_out_string
           
-          if json_string
+          if json_string and json_string != ""
             packet = Yajl::Parser.parse(json_string)
 
             apns.notify(packet[:project], packet[:bytes])
