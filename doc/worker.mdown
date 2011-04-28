@@ -1,0 +1,13 @@
+# Racoon Worker
+
+Workers are very simple devices. They sit at the front-end and pop items off the beanstalk cluster.
+They create the notifications, and feed them out to the connector.
+
+## Parts
+
+* Popper
+	This piece pops items off of the beanstalk cluster. It creates notifications, and passes them
+	over the firehose.
+* Firehose
+	This is a push socket where we send the results from the popper. These are the results preprepared
+	to be written over the socket.
