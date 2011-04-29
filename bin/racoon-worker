@@ -10,6 +10,7 @@ require 'csv'
 def usage
   puts "Usage: racoon-worker [switches]"
   puts " --beanstalk <127.0.0.1:11300>        csv list of ip:port for beanstalk servers"
+  puts " --tube <racoon>                      the beanstalk tube to use"
   puts " --pid </var/run/racoon-worker.pid>   the path to store the pid"
   puts " --log </var/log/racoon-worker.log>   the path to store the log"
   puts " --daemon                             to daemonize the server"
@@ -27,6 +28,7 @@ end
 
 opts = GetoptLong.new(
   ["--beanstalk", "-b", GetoptLong::REQUIRED_ARGUMENT],
+  ["--tube", "-t", GetoptLong::REQUIRED_ARGUMENT],
   ["--pid", "-i", GetoptLong::REQUIRED_ARGUMENT],
   ["--log", "-l", GetoptLong::REQUIRED_ARGUMENT],
   ["--help", "-h", GetoptLong::NO_ARGUMENT],
@@ -34,6 +36,7 @@ opts = GetoptLong.new(
 )
 
 beanstalks = ["127.0.0.1:11300"]
+tube = 'racoon'
 @pid_file = '/var/run/racoon-worker.pid'
 @log_file = '/var/log/racoon-worker.log'
 daemon = false
@@ -45,6 +48,8 @@ opts.each do |opt, arg|
     exit 1
   when '--beanstalk'
     beanstalks = CSV.parse(arg)[0]
+  when '--tube'
+    tube = arg
   when '--pid'
     @pid_file = arg
   when '--log'
@@ -61,4 +66,4 @@ if daemon
 else
   puts "Starting racoon worker."
 end
-Racoon::Worker.new(beanstalks).start!
+Racoon::Worker.new(beanstalks, tube).start!

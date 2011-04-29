@@ -14,6 +14,7 @@ require 'beanstalk-client'
 def usage
   puts "Usage: racoon-send [switches] (--b64-token | --hex-token) <token>"
   puts " --beanstalk <127.0.0.1:11300>        csv of ip:port for beanstalk servers"
+  puts " --tube <racoon>                      the beanstalk tube to use"
   puts " --pem <path>                         the path to the pem file, if a pem is supplied the server defaults to gateway.push.apple.com:2195"
   puts " --alert <message>                    the message to send"
   puts " --sound <default>                    the sound to play, defaults to 'default'"
@@ -26,6 +27,7 @@ end
 
 opts = GetoptLong.new(
   ["--beanstalk", "-b", GetoptLong::REQUIRED_ARGUMENT],
+  ["--tube", "-t", GetoptLong::REQUIRED_ARGUMENT],
   ["--pem", "-c", GetoptLong::REQUIRED_ARGUMENT],
   ["--alert", "-a", GetoptLong::REQUIRED_ARGUMENT],
   ["--sound", "-S", GetoptLong::REQUIRED_ARGUMENT],
@@ -37,6 +39,7 @@ opts = GetoptLong.new(
 )
 
 beanstalks = ["127.0.0.1:11300"]
+tube = 'racoon'
 certificate = nil
 notification = Racoon::Notification.new
 
@@ -47,6 +50,8 @@ opts.each do |opt, arg|
     exit
   when '--beanstalk'
     beanstalks = CSV.parse(arg)[0]
+  when '--tube'
+    tube = arg
   when '--pem'
     certificate = File.read(arg)
   when '--alert'
@@ -69,7 +74,7 @@ if notification.device_token.nil?
   exit
 else
   bs = Beanstalk::Pool.new beanstalks
-  %w{use watch}.each { |s| bs.send(s, "racoon") }
+  %w{use watch}.each { |s| bs.send(s, tube) }
   bs.ignore("default")
   project = { :name => "test", :certificate => certificate, :sandbox => true }
   notif = { :project => project,

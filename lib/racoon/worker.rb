@@ -11,10 +11,11 @@ require 'yaml'
 
 module Racoon
   class Worker
-    def initialize(beanstalk_uris, address = "tcp://*:11555", context = ZMQ::Context.new(1))
+    def initialize(beanstalk_uris, tube = "racoon", address = "tcp://*:11555", context = ZMQ::Context.new(1))
       @beanstalk_uris = beanstalk_uris
       @context = context
       @firehose = context.socket(ZMQ::PUSH)
+      @tube = tube
       @address = address
       # First packet, send something silly, the firehose ignores it
       @send_batch = true
@@ -48,7 +49,7 @@ module Racoon
     def beanstalk
       return @beanstalk if @beanstalk
       @beanstalk ||= Beanstalk::Pool.new(@beanstalk_uris)
-      %w{use watch}.each { |s| @beanstalk.send(s, 'racoon') }
+      %w{use watch}.each { |s| @beanstalk.send(s, @tube) }
       @beanstalk.ignore('default')
       @beanstalk
     end
