@@ -40,7 +40,7 @@ opts = GetoptLong.new(
   ["--daemon", "-d", GetoptLong::NO_ARGUMENT]
 )
 
-beanstalks = ["127.0.0.1:11300"]
+@beanstalks = ["127.0.0.1:11300"]
 firehose_address = "127.0.0.1:11555".split(":")
 @tube = 'racoon'
 @pid_file = '/var/run/racoon-worker.pid'
@@ -53,7 +53,7 @@ opts.each do |opt, arg|
     usage
     exit 1
   when '--beanstalk'
-    beanstalks = CSV.parse(arg)[0]
+    @beanstalks = CSV.parse(arg)[0]
   when '--tube'
     @tube = arg
   when '--firehose'
@@ -71,7 +71,7 @@ Racoon::Config.logger = Logger.new(@log_file)
 
 def beanstalk
   return @beanstalk if @beanstalk
-  @beanstalk = Beanstalk::Pool.new(beanstalks)
+  @beanstalk = Beanstalk::Pool.new(@beanstalks)
   %w{use watch}.each { |s| @beanstalk.send(s, @tube) }
   @beanstalk.ignore('default')
   @beanstalk
