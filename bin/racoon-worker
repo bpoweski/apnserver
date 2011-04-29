@@ -117,4 +117,4 @@ ZM::Reactor.new(:worker).run do |context|
       Racoon::Config.logger.info "[Beanstalk] Unable to secure job, timed out."
     end
   end
-end
+end.join

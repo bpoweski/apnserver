@@ -80,4 +80,4 @@ ZM::Reactor.new(:firehose).run do |context|
       end
     end
   end
-end
+end.join
