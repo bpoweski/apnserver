@@ -110,7 +110,7 @@ ZM::Reactor.new(:worker).run do |context|
     begin
       if beanstalk.peek_ready
         job = beanstalk.reserve(1)
-        process job
+        process(job, worker)
         job.delete
       end
     rescue Beanstalk::TimedOut
