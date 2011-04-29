@@ -71,7 +71,7 @@ Racoon::Config.logger = Logger.new(@log_file)
 
 def beanstalk
   return @beanstalk if @beanstalk
-  @beanstalk = Beanstalk::Pool.new(beanstalk_uris)
+  @beanstalk = Beanstalk::Pool.new(beanstalks)
   %w{use watch}.each { |s| @beanstalk.send(s, @tube) }
   @beanstalk.ignore('default')
   @beanstalk
