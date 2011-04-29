@@ -56,9 +56,8 @@ Racoon::Config.logger = Logger.new(@log_file)
 if daemon
   daemonize
 else
-  puts "Starting racoon worker."
+  puts "Starting racoon firehose."
 end
-#Racoon::Firehose.new.start!
 
 ZM::Reactor.new(:firehose).run do |context|
   firehose = Racoon::Firehose.new(context) do |feedback_record|
