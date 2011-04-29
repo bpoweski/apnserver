@@ -68,6 +68,7 @@ ZM::Reactor.new(:firehose).run do |context|
   context.periodical_timer(28800) do
     firehose.connections.each_pair do |key, data|
       begin
+        project = data[:project]
         uri = "gateway.#{project[:sandbox] ? 'sandbox.' : ''}push.apple.com"
         feedback = Racoon::APNS::FeedbackConnection.new(data[:certificate], uri)
         feedback.connect!
