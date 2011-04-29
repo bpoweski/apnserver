@@ -40,12 +40,12 @@ module Racoon
       hash = Digest::SHA1.hexdigest("#{project[:name]}-#{project[:certificate]}")
 
       begin
-        @connection[hash] ||= Racoon::APNS::Connection.new(project[:certificate], uri)
+        @connections[hash] ||= Racoon::APNS::Connection.new(project[:certificate], uri)
 
-        @connection[hash].connect! unless @connection[hash].connected?
-        @connection[hash].write(bytes)
+        @connections[hash].connect! unless @connections[hash].connected?
+        @connections[hash].write(bytes)
       rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
-        @connection[hash].disconnect!
+        @connections[hash].disconnect!
         retry if (retries -= 1) > 0
       end
     end
