@@ -61,8 +61,7 @@ module Racoon
     #   "bytes":"..."
     # }
     def process(job)
-      json_string = job.body
-      packet = Yajl::Parser.parse(json_string)
+      packet = job.ybody
       project = packet[:project]
 
       notification = Notification.create_from_packet(packet)
