@@ -10,16 +10,32 @@ require 'ffi-rzmq'
 
 module Racoon
   class Firehose
-    def initialize(address = "tcp://*:11555", context = ZMQ::Context.new(1))
+    def initialize(address = "tcp://*:11555", context = ZMQ::Context.new(1), &feedback_callback)
       @connections = {}
       @context = context
       @firehose = context.socket(ZMQ::PULL)
       @address = address
+      @feedback_callback = feedback_callback
     end
 
     def start!
       EventMachine::run do
         @firehose.bind(@address)
+
+        EventMachine::PeriodicTimer.new(28800) do
+          @connections.each_pair do |key, data|
+            begin
+              uri = "gateway.#{project[:sandbox] ? 'sandbox.' : ''}push.apple.com"
+              feedback = Racoon::APNS::FeedbackConnection.new(data[:certificate], uri)
+              feedback.connect!
+              feedback.read.each do |record|
+                @feedback_callback.call(record) if @feedback_callback
+              end
+            rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
+              feedback.disconnect!
+            end
+          end
+        end
 
         EventMachine::PeriodicTimer.new(0.1) do
           received_message = ZMQ::Message.new
@@ -40,12 +56,13 @@ module Racoon
       hash = Digest::SHA1.hexdigest("#{project[:name]}-#{project[:certificate]}")
 
       begin
-        @connections[hash] ||= Racoon::APNS::Connection.new(project[:certificate], uri)
+        connection = Racoon::APNS::Connection.new(project[:certificate], uri)
+        @connections[hash] ||= { :connection => connection, :certificate => project[:certificate], :sandbox => project[:sandbox] }
 
-        @connections[hash].connect! unless @connections[hash].connected?
-        @connections[hash].write(bytes)
+        connection.connect! unless connection.connected?
+        connection.write(bytes)
       rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
-        @connections[hash].disconnect!
+        connection.disconnect!
         retry if (retries -= 1) > 0
       end
     end
