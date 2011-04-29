@@ -25,8 +25,6 @@ module Racoon
           uri = "gateway.#{project[:sandbox] ? 'sandbox.' : ''}push.apple.com"
           hash = project_hash(project)
 
-          should_fail_in_exception_handler = false
-
           begin
             @connection[hash] ||= Racoon::APNS::Connection.new(project[:certificate], uri)
 
@@ -34,18 +32,17 @@ module Racoon
             @connection[hash].write(bytes)
           rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
             @connection[hash].disconnect!
-            retry unless should_fail_in_exception_handler
-            should_fail_in_exception_handler = true
+            retry
           end
         end
 
         EventMachine::PeriodicTimer.new(0.1) do
           received_message = ZMQ::Message.new
           @firehose.recv(received_message, ZMQ::NOBLOCK)
-          json_string = received_message.copy_out_string
+          yaml_string = received_message.copy_out_string
           
-          if json_string and json_string != ""
-            packet = Yajl::Parser.parse(json_string)
+          if yaml_string and yaml_string != ""
+            packet = YAML::load(yaml_string)
 
             apns.notify(packet[:project], packet[:bytes])
           end

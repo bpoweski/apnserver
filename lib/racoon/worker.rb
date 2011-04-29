@@ -7,6 +7,7 @@
 require 'beanstalk-client'
 require 'eventmachine'
 require 'ffi-rzmq'
+require 'yaml'
 
 module Racoon
   class Worker
@@ -67,7 +68,7 @@ module Racoon
       notification = Notification.create_from_packet(packet)
 
       data = { :project => project, :bytes => notification.to_bytes }
-      @firehose.send_string(Yajl::Encoder.encode(data))
+      @firehose.send_string(YAML::dump(data))
     end
   end
 end
