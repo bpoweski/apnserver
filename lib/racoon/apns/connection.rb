@@ -36,8 +36,9 @@ module Racoon
         @sock = nil
       end
 
-      def write(notification)
+      def write(bytes)
         if host.include? "sandbox"
+          notification = Notification.parse(bytes)
           Config.logger.debug "#{Time.now} [#{host}:#{port}] Device: #{notification.device_token.unpack('H*')} sending #{notification.json_payload}"
         end
         @ssl.write(notification.to_bytes)
