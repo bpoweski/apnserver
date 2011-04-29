@@ -23,7 +23,7 @@ module Racoon
 
         apns = EventMachine.spawn do |project, bytes, retries|
           uri = "gateway.#{project[:sandbox] ? 'sandbox.' : ''}push.apple.com"
-          hash = project_hash(project)
+          hash = Digest::SHA1.hexdigest("#{project[:name]}-#{project[:certificate]}")
 
           begin
             @connection[hash] ||= Racoon::APNS::Connection.new(project[:certificate], uri)
@@ -48,10 +48,6 @@ module Racoon
           end
         end
       end
-    end
-
-    def project_hash(project)
-      Digest::SHA1.hexdigest("#{project[:name]}-#{project[:certificate]}")
     end
   end
 end
