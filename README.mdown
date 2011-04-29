@@ -6,25 +6,28 @@ has since taken on a different path. How does it differ from apnserver? By a few
 1. It implements the APNS feedback service;
 2. Uses Yajl for JSON encoding/decoding rather than ActiveSupport;
 3. Expects certificates as strings instead of paths to files;
-4. Does not assume there is only one certificate; and
-5. Receives packets containing notifications from beanstalkd instead of a listening socket.
+4. Does not assume there is only one certificate (read: supports multiple projects); and
+5. Receives packets containing notifications from beanstalkd instead of a listening socket;
+6. Operates on a distributed architecture (many parallel workers, one firehose.
 
-The above changes were made because of the need for an APNS provider to replace the current
-provider used by [Diligent Street](http://www.diligentstreet.com/) with something more robust. As such, it needs to be
-suitable for a hosted environment, where multiple—unrelated—users of the service will be
-using it.
+The above changes were made because of the need to replace an existing APNs provider with something
+more robust, and better suited to scaling upwards. This APNs provider had a couple requirements:
+
+1. Support fully the APNs protocol (including feedback)
+2. Scale outwards horizontally
+3. Support multiple projects
 
 It should be noted that the development of this project is independent of the work bpoweski
 is doing on apnserver. If you're looking for that project, [go here](https://github.com/bpoweski/apnserver).
 
 ## Description
 
-racoon is a server and a set of command line programs to send push notifications to iOS devices.
-Apple recommends to maintain an open connection to the push notification service, and refrain
-from opening up and tearing down SSL connections repeatedly. As such, a separate daemon is
-introduced that has messages queued up (beanstalkd) for consumption by this daemon. This
-decouples the APNS server from your backend system. Those notifications are sent over a
-persistent connection to Apple.
+Racoon consists of a firehose, which maintains the connections to Apple's APNs service. It also
+consists of a worker, which works on a beanstalk tube to pop notifications off and process them,
+before sending them off to the firehose. You can run many workers, they all run in parallel to
+one another. Additionally, it includes a command line tool to send (test) the system.
+
+At this time, Racoon only supports Apple's APNs service.
 
 ## Remaining Tasks & Issues
 
@@ -46,97 +49,109 @@ using frac.as, this is the file you would upload to the web service.
 If you're not using frac.as, then the contents of this file are what you need to use as
 your certificate, not the path to the file.
 
-## APN Server Daemon
+## Firehose
+
+The firehose sits at the end of the pipeline. All the workers deliver messages to this
+part of racoon. Think of it as the drain in your sink.
 
 <pre>
-Usage: racoond [options]
-  --beanstalk <csv ip:port mappings>
-	The comma-separated list of ip:port for beanstalk servers
-
-  --pid <pid file path>
-	Path used for the PID file. Defaults to /var/run/racoon.pid
-
-  --log <log file path>
-	Path used for the log file. Defaults to /var/log/racoon.log
-
-  --help
-    usage message
-
-  --daemon
-    Runs process as daemon, not available on Windows
+Usage: racoon-firehose [switches]
+ --pid </var/run/racoon-firehose.pid>   the path to store the pid
+ --log </var/log/racoon-firehosed.log>  the path to store the log
+ --daemon                               to daemonize the server
+ --help                                 this message
 </pre>
 
-## APN Server Client
+## Worker
 
-TODO: Document this
+The worker is the part of the system which interacts with a beanstalk cluster. Each worker
+can talk to more than one beanstalk server, thus forming the "cluster". Since beanstalk
+clustering is all done client side, it's not a traditional cluster, but I'm going to call
+it that way anyway.
 
-## Sending Notifications from Ruby
+The worker pops items that are ready off of the beanstalk cluster. It grabs those packets,
+constructs a message out of it, and then forms another packet, suitable for sending to
+Apple, before sending that packet to the firehose.
 
-You need to set up a connection to the beanstalkd service. We can do this simply by defining
-the following method:
+You may run as many workers as your little heart desires. Keep in mind however, there will
+come a point when having only one firehose is not suitable to handle the amount of traffic
+you will be passing through from the workers. At this point, a second firehose will need
+to be started. I doubt anyone will ever be processing enough messages a second to warrant
+a second firehose.
+
+<pre>
+Usage: racoon-worker [switches]
+ --beanstalk <127.0.0.1:11300>        csv list of ip:port for beanstalk servers
+ --pid </var/run/racoon-worker.pid>   the path to store the pid
+ --log </var/log/racoon-worker.log>   the path to store the log
+ --daemon                             to daemonize the server
+ --help                               this message
+</pre>
+
+It should be noted that the worker's `--beanstalk` parameter requires comma separated values
+in `IP:port` pairings. Where `IP` is either an IP address, or a hostname to a host running a
+beanstalkd server on the associated port `port`. In the future, I will create a config file
+instead of having to specify this information on the command line each time. My apologies for
+the inconvenience.
+
+## Sender
+
+The sender is the program used to form a packet, place it on beanstalk for racoon to consume.
+It is useful during testing.
+
+<pre>
+Usage: racoon-send [switches] (--b64-token | --hex-token) <token>
+ --beanstalk <127.0.0.1:11300>        csv of ip:port for beanstalk servers
+ --pem <path>                         the path to the pem file, if a pem is supplied the server defaults to gateway.push.apple.com:2195
+ --alert <message>                    the message to send
+ --sound <default>                    the sound to play, defaults to 'default'
+ --badge <number>                     the badge number
+ --custom <json string>               a custom json string to be added to the main object
+ --b64-token <token>                  a base 64 encoded device token
+ --hex-token <token>                  a hex encoded device token
+ --help                               this message
+</pre>
+
+## Preparing packets to place on beanstalk
+
+Until an API can be built that you can tie into with your own applications, please take care
+to construct your notifications as YAML payload with the following format. I will use ruby
+syntax for this example:
 
 ```ruby
-def beanstalk
-  return @beanstalk if @beanstalk
-  @beanstalk = Beanstalk::Pool.new ["127.0.0.1:11300"]
-  @beanstalk.use "racoon-apns"
-  @beanstalk
-end
+{
+  :project => { :name => "My awesome app", :certificate => "...", :sandbox => true },
+  :identifier => 12345,
+  :notification => { :aps => { :alert => "text",
+                               :sound => "default",
+                               :badge => 1,
+                               :custom => { ... }
+                             }
+                   },
+  :device_token => "..."
+}
 ```
 
-In this way, whenever we need access to beanstalk, we'll make the connection and set up to use
-the appropriate tube whether the connection is open yet or not.
+A few key points need to be raised here. For starters, the `sandbox` key should only be true if
+you desire to work in the sandbox, and your `certificate` contains the text of your development
+certificate.
 
-We will also need two pieces of information: A project, and a notification.
+Secondly, the `identifier` must be a unique 32-bit number identifying your message should you
+choose to want useful error messages. (This feature is not presently written, as such, you can
+supply anything you want, just make sure it falls within the range of `0` to `4294967295`.
 
-**Note that the tube should always be "racoon-apns". The server won't look on any other tube for
-push notifications.**
+The `notification` key represents the payload we'll send to Apple. The `custom` key must be
+present if you intend to send custom data. Note however, that `custom` will be removed, and the
+items you place in its hash will be substituted in with the payload when the message is passed
+to Apple. As such, if you want a custom key -> value pair of: `"foo" => "bar"`, you would ensure
+you have: `:custom => { "foo" => "bar" }` in the notification. Your application should just look
+for "foo" in the payload delivered to the app.
 
-### Project
-
-A project os comprised of a few pieces of information at a minimum (you may supply more if you
-wish, but racoond will ignore them):
-
-```ruby
-project = { :name => "Awesome project", :certificate => "contents of the generated .pem file" }
-```
-
-### Notification
-
-A notification is a ruby hash containing the things to be sent along, including the device token.
-An example notification may look like this:
-
-```ruby
-notification = { :aps => { :alert => "Some text",
-                           :sound => "Audio_file",
-                           :badge => 42,
-                           :custom => { :field => "lala",
-                                        :stuff => 42 }
-                         }
-               }
-```
-
-Finally within we can send a push notification using the following code:
-
-```ruby
-beanstalk.yput({ :project => project,
-                 :notification => notification,
-                 :device_token => "binary encoded token",
-                 :sandbox => true
-})
-```
+Finally, the ```device_token``` is a binary encoded representation of your devices token. Your
+app gets it in hex, please ensure you convert it to binary before sending it to beanstalk.
 
 TODO: Document new way of handling scheduling notifications in the future. Abstract beanstalk
 away from users of the library, give them a proper client interface to use instead.
-
-Note that the `sandbox` parameter is used to indicate whether or not we're using a development
-certificate, and as such, should contact Apple's sandbox APN service instead of the production
-certificate. If left out, we assume production.
-
-This will schedule the push on beanstalkd. Racoon is constantly polling beanstalkd looking for
-ready jobs it can pop off and process (send to Apple). Using beanstalkd however allows us to
-queue up items, and during peak times, add another **N** more racoon servers to make up any
-backlog, to ensure our messages are sent fast, and that we can scale.
 
 ## Installation
 

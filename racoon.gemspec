@@ -1,11 +1,11 @@
 Gem::Specification.new do |s|
   s.name = %q{racoon}
-  s.version = "0.5.0pre1"
+  s.version = "0.5.0"
   s.platform    = Gem::Platform::RUBY
 
   s.authors = ["Jeremy Tregunna"]
   s.date = %q{2011-04-24}
-  s.description = %q{A toolkit for proxying and sending Apple Push Notifications prepared for a hosted environment}
+  s.description = %q{A distributed Apple Push Notification Service (APNs) provider developed for hosting multiple projects.}
   s.email = %q{jeremy.tregunna@me.com}
   s.executables = ["racoon-send", "racoon-worker", "racoon-firehose"]
   s.extra_rdoc_files = ["README.mdown"]
@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{racoon}
   s.rubygems_version = %q{1.3.5}
-  s.summary = %q{Apple Push Notification Toolkit for hosted environments}
+  s.summary = %q{Distributed Apple Push Notification provider suitable for multi-project hosting.}
   s.test_files = Dir.glob("spec/**/*")
 
   s.required_rubygems_version = ">= 1.3.6"
