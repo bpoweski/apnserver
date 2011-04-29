@@ -11,7 +11,6 @@ GEM
     beanstalk-client (1.1.0)
     daemons (1.0.10)
     diff-lcs (1.1.2)
-    eventmachine (0.12.10)
     ffi (1.0.7)
       rake (>= 0.8.7)
     ffi-rzmq (0.8.0)
@@ -32,7 +31,6 @@ PLATFORMS
 DEPENDENCIES
   beanstalk-client
   daemons
-  eventmachine
   ffi
   ffi-rzmq
   rspec

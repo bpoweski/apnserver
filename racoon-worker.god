@@ -7,7 +7,7 @@
   God.watch do |w|
     w.name = name
     w.interval = 30.seconds
-    w.start = "/fracas/deploy/racoon/bin/racoon-worker -d --beanstalk 127.0.0.1:11300 --pid #{pid_file} --log /var/log/#{name}.log"
+    w.start = "/fracas/deploy/racoon/bin/racoon-worker -d --beanstalk 127.0.0.1:11300 --firehose localhost:11555 --pid #{pid_file} --log /var/log/#{name}.log"
     w.stop = "kill -9 `cat #{pid_file}`"
     w.start_grace = 10.seconds
     w.pid_file = pid_file
