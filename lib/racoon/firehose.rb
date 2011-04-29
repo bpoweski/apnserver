@@ -28,7 +28,7 @@ module Racoon
           should_fail_in_exception_handler = false
 
           begin
-            @connection[hash] ||= Racoon::Client.new(project[:certificate], uri)
+            @connection[hash] ||= Racoon::APNS::Connection.new(project[:certificate], uri)
 
             @connection[hash].connect! unless @connection[hash].connected?
             @connection[hash].write(bytes)
