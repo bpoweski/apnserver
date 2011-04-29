@@ -21,7 +21,7 @@ module Racoon
       EventMachine::run do
         @firehose.bind(@address)
 
-        apns = EventMachine.spawn do |project, bytes|
+        apns = EventMachine.spawn do |project, bytes, retries|
           uri = "gateway.#{project[:sandbox] ? 'sandbox.' : ''}push.apple.com"
           hash = project_hash(project)
 
@@ -32,7 +32,7 @@ module Racoon
             @connection[hash].write(bytes)
           rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
             @connection[hash].disconnect!
-            retry
+            retry if (retries -= 1) > 0
           end
         end
 
@@ -44,13 +44,11 @@ module Racoon
           if yaml_string and yaml_string != ""
             packet = YAML::load(yaml_string)
 
-            apns.notify(packet[:project], packet[:bytes])
+            apns.notify(packet[:project], packet[:bytes], 2)
           end
         end
       end
     end
-
-    private
 
     def project_hash(project)
       Digest::SHA1.hexdigest("#{project[:name]}-#{project[:certificate]}")
