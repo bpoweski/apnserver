@@ -4,6 +4,7 @@ gem "eventmachine"
 gem "daemons"
 gem "yajl-ruby"
 gem "beanstalk-client"
+gem "ffi-rzmq"
 
 group :spec do
   gem "rspec"

@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = ">= 1.3.6"
   s.add_dependency 'yajl-ruby', '>= 0.7.0'
   s.add_dependency 'beanstalk-client', '>= 1.0.0'
+  s.add_dependency 'ffi-rzmq', '~> 0.8.0'
   s.add_development_dependency 'bundler', '~> 1.0.0'
   s.add_development_dependency 'eventmachine', '>= 0.12.8'
 end
