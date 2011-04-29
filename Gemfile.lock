@@ -5,7 +5,10 @@ GEM
     daemons (1.0.10)
     diff-lcs (1.1.2)
     eventmachine (0.12.10)
+    ffi (1.0.7)
+      rake (>= 0.8.7)
     ffi-rzmq (0.8.0)
+    rake (0.8.7)
     rspec (2.3.0)
       rspec-core (~> 2.3.0)
       rspec-expectations (~> 2.3.0)
@@ -23,6 +26,7 @@ DEPENDENCIES
   beanstalk-client
   daemons
   eventmachine
+  ffi
   ffi-rzmq
   rspec
   yajl-ruby

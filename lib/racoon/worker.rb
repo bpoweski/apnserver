@@ -4,6 +4,7 @@
 # This module contains the worker which processes notifications before sending them off
 # down to the firehose.
 
+require 'beanstalk-client'
 require 'eventmachine'
 require 'ffi-rzmq'
 
