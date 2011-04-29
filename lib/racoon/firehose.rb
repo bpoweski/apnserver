@@ -21,21 +21,6 @@ module Racoon
       EventMachine::run do
         @firehose.bind(@address)
 
-        apns = EventMachine.spawn do |project, bytes, retries|
-          uri = "gateway.#{project[:sandbox] ? 'sandbox.' : ''}push.apple.com"
-          hash = Digest::SHA1.hexdigest("#{project[:name]}-#{project[:certificate]}")
-
-          begin
-            @connection[hash] ||= Racoon::APNS::Connection.new(project[:certificate], uri)
-
-            @connection[hash].connect! unless @connection[hash].connected?
-            @connection[hash].write(bytes)
-          rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
-            @connection[hash].disconnect!
-            retry if (retries -= 1) > 0
-          end
-        end
-
         EventMachine::PeriodicTimer.new(0.1) do
           received_message = ZMQ::Message.new
           @firehose.recv(received_message, ZMQ::NOBLOCK)
@@ -44,9 +29,24 @@ module Racoon
           if yaml_string and yaml_string != ""
             packet = YAML::load(yaml_string)
 
-            apns.notify(packet[:project], packet[:bytes], 2)
+            apns(packet[:project], packet[:bytes])
           end
         end
+      end
+    end
+
+    def apns(project, bytes, retries=2)
+      uri = "gateway.#{project[:sandbox] ? 'sandbox.' : ''}push.apple.com"
+      hash = Digest::SHA1.hexdigest("#{project[:name]}-#{project[:certificate]}")
+
+      begin
+        @connection[hash] ||= Racoon::APNS::Connection.new(project[:certificate], uri)
+
+        @connection[hash].connect! unless @connection[hash].connected?
+        @connection[hash].write(bytes)
+      rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
+        @connection[hash].disconnect!
+        retry if (retries -= 1) > 0
       end
     end
   end
