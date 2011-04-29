@@ -34,6 +34,7 @@ module Racoon
             if beanstalk.peek_ready
               job = beanstalk.reserve(1)
               process job
+              job.delete
             end
           rescue Beanstalk::TimedOut
             Config.logger.info "[Beanstalk] Unable to secure job, operation timed out."
