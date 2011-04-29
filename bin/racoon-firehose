@@ -6,6 +6,8 @@ require 'rubygems'
 require 'daemons'
 require 'racoon'
 require 'csv'
+require 'yaml'
+require 'zmqmachine'
 
 def usage
   puts "Usage: racoon-firehose [switches]"
@@ -56,4 +58,26 @@ if daemon
 else
   puts "Starting racoon worker."
 end
-Racoon::Firehose.new.start!
+#Racoon::Firehose.new.start!
+
+ZM::Reactor.new(:firehose).run do |context|
+  firehose = Racoon::Firehose.new(context) do |feedback_record|
+    Racoon::Config.logger.info "[Feedback] Time: #{feedback_record[:feedback_at]} Device: #{feedback_record[:device_token]} Length: #{feedback_record[:length]}"
+  end
+  context.pull_socket(firehose)
+
+  context.periodical_timer(28800) do
+    firehose.connections.each_pair do |key, data|
+      begin
+        uri = "gateway.#{project[:sandbox] ? 'sandbox.' : ''}push.apple.com"
+        feedback = Racoon::APNS::FeedbackConnection.new(data[:certificate], uri)
+        feedback.connect!
+        feedback.read.each do |record|
+          @feedback_callback.call(record) if @feedback_callback
+        end
+      rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
+        feedback.disconnect!
+      end
+    end
+  end
+end

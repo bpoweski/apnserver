@@ -1,3 +1,10 @@
+GIT
+  remote: git://github.com/jeremytregunna/zmqmachine.git
+  revision: fb39523eafa41127d3042f2bbe65c92fc451d412
+  specs:
+    zmqmachine (0.4.0)
+      ffi-rzmq (>= 0.7.0)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -30,3 +37,4 @@ DEPENDENCIES
   ffi-rzmq
   rspec
   yajl-ruby
+  zmqmachine!

@@ -8,7 +8,7 @@ has since taken on a different path. How does it differ from apnserver? By a few
 3. Expects certificates as strings instead of paths to files;
 4. Does not assume there is only one certificate (read: supports multiple projects); and
 5. Receives packets containing notifications from beanstalkd instead of a listening socket;
-6. Operates on a distributed architecture (many parallel workers, one firehose.
+6. Operates on a distributed architecture (many parallel workers, one firehose).
 
 The above changes were made because of the need to replace an existing APNs provider with something
 more robust, and better suited to scaling upwards. This APNs provider had a couple requirements:
@@ -19,6 +19,12 @@ more robust, and better suited to scaling upwards. This APNs provider had a coup
 
 It should be noted that the development of this project is independent of the work bpoweski
 is doing on apnserver. If you're looking for that project, [go here](https://github.com/bpoweski/apnserver).
+
+## BIT FAT DEPENDENCY WARNING
+
+Since version 0.6.0, Racoon uses ZMQMachine. However, the mainline ZMQMachine does not support PUSH/PULL
+sockets as of the time I wrote this (probably still the same way, else I'd have removed this by now).
+As such, I strongly urge you to [fork this repository](https://github.com/jeremytregunna/zmqmachine) and install it before installing racoon.
 
 ## Description
 
