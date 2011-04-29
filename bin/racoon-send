@@ -69,13 +69,12 @@ if notification.device_token.nil?
   exit
 else
   bs = Beanstalk::Pool.new beanstalks
-  %w{use watch}.each { |s| bs.send(s, "racoon-apns") }
+  %w{use watch}.each { |s| bs.send(s, "racoon") }
   bs.ignore("default")
-  project = { :name => "test", :certificate => certificate }
+  project = { :name => "test", :certificate => certificate, :sandbox => true }
   bs.yput({ :project => project,
             :identifier => 1,
             :notification => notification.payload,
             :device_token => notification.device_token,
-            :sandbox => true
   })
 end
