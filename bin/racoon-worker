@@ -8,16 +8,16 @@ require 'racoon'
 require 'csv'
 
 def usage
-  puts "Usage: racoon-workerd [switches]"
+  puts "Usage: racoon-worker [switches]"
   puts " --beanstalk <127.0.0.1:11300>        csv list of ip:port for beanstalk servers"
-  puts " --pid </var/run/racoon-workerd.pid>  the path to store the pid"
-  puts " --log </var/log/racoon-workerdd.log> the path to store the log"
+  puts " --pid </var/run/racoon-worker.pid>   the path to store the pid"
+  puts " --log </var/log/racoon-worker.log>   the path to store the log"
   puts " --daemon                             to daemonize the server"
   puts " --help                               this message"
 end
 
 def daemonize
-  Daemonize.daemonize(@log_file, 'racoon-workerd')
+  Daemonize.daemonize(@log_file, 'racoon-worker')
   open(@pid_file,"w") { |f| f.write(Process.pid) }
   open(@pid_file,"w") do |f|
     f.write(Process.pid)
@@ -34,8 +34,8 @@ opts = GetoptLong.new(
 )
 
 beanstalks = ["127.0.0.1:11300"]
-@pid_file = '/var/run/racoon-workerd.pid'
-@log_file = '/var/log/racoon-workerd.log'
+@pid_file = '/var/run/racoon-worker.pid'
+@log_file = '/var/log/racoon-worker.log'
 daemon = false
 
 opts.each do |opt, arg|

@@ -8,15 +8,15 @@ require 'racoon'
 require 'csv'
 
 def usage
-  puts "Usage: racoon-firehosed [switches]"
-  puts " --pid </var/run/racoon-firehosed.pid>  the path to store the pid"
-  puts " --log </var/log/racoon-firehosedd.log> the path to store the log"
+  puts "Usage: racoon-firehose [switches]"
+  puts " --pid </var/run/racoon-firehose.pid>   the path to store the pid"
+  puts " --log </var/log/racoon-firehosed.log>  the path to store the log"
   puts " --daemon                               to daemonize the server"
   puts " --help                                 this message"
 end
 
 def daemonize
-  Daemonize.daemonize(@log_file, 'racoon-firehosed')
+  Daemonize.daemonize(@log_file, 'racoon-firehose')
   open(@pid_file,"w") { |f| f.write(Process.pid) }
   open(@pid_file,"w") do |f|
     f.write(Process.pid)
@@ -31,8 +31,8 @@ opts = GetoptLong.new(
   ["--daemon", "-d", GetoptLong::NO_ARGUMENT]
 )
 
-@pid_file = '/var/run/racoon-firehosed.pid'
-@log_file = '/var/log/racoon-firehosed.log'
+@pid_file = '/var/run/racoon-firehose.pid'
+@log_file = '/var/log/racoon-firehose.log'
 daemon = false
 
 opts.each do |opt, arg|
