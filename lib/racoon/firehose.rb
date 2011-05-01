@@ -32,7 +32,7 @@ module Racoon
 
     private
 
-    def apns(project, bytes, retries=2)
+    def apns(project, bytes, retries=2, &error_callback)
       uri = "gateway.#{project[:sandbox] ? 'sandbox.' : ''}push.apple.com"
       hash = Digest::SHA1.hexdigest("#{project[:name]}-#{project[:certificate]}")
 
@@ -44,6 +44,8 @@ module Racoon
 
         connection.connect! unless connection.connected?
         connection.write(bytes)
+        connection.read.each(&error_callback)
+        end
       rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
         connection.disconnect!
         retry if (retries -= 1) > 0

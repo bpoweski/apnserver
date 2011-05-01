@@ -36,6 +36,14 @@ module Racoon
         @sock = nil
       end
 
+      def read
+        errors ||= []
+        while error = @ssl.read(6)
+          errors << parse_tuple(error)
+        end
+        errors
+      end
+
       def write(bytes)
         if host.include? "sandbox"
           notification = Notification.parse(bytes)
@@ -46,6 +54,13 @@ module Racoon
 
       def connected?
         @ssl
+      end
+
+      private
+
+      def parse_tuple(data)
+        packet = data.unpack("c1c1N1")
+        { :command => packet[0], :status => packet[1], :identifier => packet[2] }
       end
     end
   end
