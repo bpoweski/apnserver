@@ -44,7 +44,7 @@ module Racoon
 
         connection.connect! unless connection.connected?
         connection.write(bytes)
-        connection.read.each(&error_callback)
+        connection.read.each(&error_callback) unless error_callback.nil?
       rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
         connection.disconnect!
         retry if (retries -= 1) > 0
