@@ -8,5 +8,5 @@ require 'racoon/worker'
 require 'racoon/firehose'
 
 module Racoon
-  VERSION = "1.0.0"
+  VERSION = "1.0.1"
 end
