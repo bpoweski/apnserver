@@ -1,4 +1,9 @@
-module ApnServer
+# Racoon - A distributed APNs provider
+# Copyright (c) 2011, Jeremy Tregunna, All Rights Reserved.
+#
+# APNs payload data
+
+module Racoon
   module Payload
     PayloadInvalid = Class.new(RuntimeError)
 

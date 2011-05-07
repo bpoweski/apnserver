@@ -1,0 +1,201 @@
+# Racoon push notification server
+
+This project started off as a fork of [apnserver](https://github.com/bpoweski/apnserver). It
+has since taken on a different path. How does it differ from apnserver? By a few key points:
+
+1. It implements the APNS feedback service;
+2. Uses Yajl for JSON encoding/decoding rather than ActiveSupport;
+3. Expects certificates as strings instead of paths to files;
+4. Does not assume there is only one certificate (read: supports multiple projects); and
+5. Receives packets containing notifications from beanstalkd instead of a listening socket;
+6. Operates on a distributed architecture (many parallel workers, one firehose).
+
+The above changes were made because of the need to replace an existing APNs provider with something
+more robust, and better suited to scaling upwards. This APNs provider had a couple requirements:
+
+1. Support fully the APNs protocol (including feedback)
+2. Scale outwards horizontally
+3. Support multiple projects
+
+It should be noted that the development of this project is independent of the work bpoweski
+is doing on apnserver. If you're looking for that project, [go here](https://github.com/bpoweski/apnserver).
+
+## BIT FAT DEPENDENCY WARNING
+
+Since version 0.6.0, Racoon uses ZMQMachine. However, the mainline ZMQMachine does not support PUSH/PULL
+sockets as of the time I wrote this (probably still the same way, else I'd have removed this by now).
+As such, I strongly urge you to [fork this repository](https://github.com/jeremytregunna/zmqmachine) and install it before installing racoon.
+
+## Description
+
+Racoon consists of a firehose, which maintains the connections to Apple's APNs service. It also
+consists of a worker, which works on a beanstalk tube to pop notifications off and process them,
+before sending them off to the firehose. You can run many workers, they all run in parallel to
+one another. Additionally, it includes a command line tool to send (test) the system.
+
+At this time, Racoon only supports Apple's APNs service.
+
+## Remaining Tasks & Issues
+
+You can see progress by looking at the [issue tracker](https://www.pivotaltracker.com/projects/279053).
+
+## Preparing Certificates
+
+Certificates must be prepared before they can be used with racoon. Unfortunately, Apple
+gives us *.p12* files instead of *.pem* files. As such, we need to convert them. This
+can be accomplished by dropping to the command line and running this command:
+
+<pre>
+$ openssl pkcs12 -in cert.p12 -out cert.pem -nodes -clcerts
+</pre>
+
+This will generate a file suitable for use with this daemon, called *cert.pem*. If you're
+using frac.as, this is the file you would upload to the web service.
+
+If you're not using frac.as, then the contents of this file are what you need to use as
+your certificate, not the path to the file.
+
+## Firehose
+
+The firehose sits at the end of the pipeline. All the workers deliver messages to this
+part of racoon. Think of it as the drain in your sink.
+
+<pre>
+Usage: racoon-firehose [switches]
+ --pid </var/run/racoon-firehose.pid>   the path to store the pid
+ --log </var/log/racoon-firehosed.log>  the path to store the log
+ --daemon                               to daemonize the server
+ --help                                 this message
+</pre>
+
+## Worker
+
+The worker is the part of the system which interacts with a beanstalk cluster. Each worker
+can talk to more than one beanstalk server, thus forming the "cluster". Since beanstalk
+clustering is all done client side, it's not a traditional cluster, but I'm going to call
+it that way anyway.
+
+The worker pops items that are ready off of the beanstalk cluster. It grabs those packets,
+constructs a message out of it, and then forms another packet, suitable for sending to
+Apple, before sending that packet to the firehose.
+
+You may run as many workers as your little heart desires. Keep in mind however, there will
+come a point when having only one firehose is not suitable to handle the amount of traffic
+you will be passing through from the workers. At this point, a second firehose will need
+to be started. I doubt anyone will ever be processing enough messages a second to warrant
+a second firehose.
+
+<pre>
+Usage: racoon-worker [switches]
+ --beanstalk <127.0.0.1:11300>        csv list of ip:port for beanstalk servers
+ --pid </var/run/racoon-worker.pid>   the path to store the pid
+ --log </var/log/racoon-worker.log>   the path to store the log
+ --daemon                             to daemonize the server
+ --help                               this message
+</pre>
+
+It should be noted that the worker's `--beanstalk` parameter requires comma separated values
+in `IP:port` pairings. Where `IP` is either an IP address, or a hostname to a host running a
+beanstalkd server on the associated port `port`. In the future, I will create a config file
+instead of having to specify this information on the command line each time. My apologies for
+the inconvenience.
+
+## Sender
+
+The sender is the program used to form a packet, place it on beanstalk for racoon to consume.
+It is useful during testing.
+
+<pre>
+Usage: racoon-send [switches] (--b64-token | --hex-token) <token>
+ --beanstalk <127.0.0.1:11300>        csv of ip:port for beanstalk servers
+ --pem <path>                         the path to the pem file, if a pem is supplied the server defaults to gateway.push.apple.com:2195
+ --alert <message>                    the message to send
+ --sound <default>                    the sound to play, defaults to 'default'
+ --badge <number>                     the badge number
+ --custom <json string>               a custom json string to be added to the main object
+ --b64-token <token>                  a base 64 encoded device token
+ --hex-token <token>                  a hex encoded device token
+ --help                               this message
+</pre>
+
+## Preparing packets to place on beanstalk
+
+Until an API can be built that you can tie into with your own applications, please take care
+to construct your notifications as YAML payload with the following format. I will use ruby
+syntax for this example:
+
+```ruby
+{
+  :project => { :name => "My awesome app", :certificate => "...", :sandbox => true },
+  :identifier => 12345,
+  :notification => { :aps => { :alert => "text",
+                               :sound => "default",
+                               :badge => 1,
+                               :custom => { ... }
+                             }
+                   },
+  :device_token => "..."
+}
+```
+
+A few key points need to be raised here. For starters, the `sandbox` key should only be true if
+you desire to work in the sandbox, and your `certificate` contains the text of your development
+certificate.
+
+Secondly, the `identifier` must be a unique 32-bit number identifying your message should you
+choose to want useful error messages. (This feature is not presently written, as such, you can
+supply anything you want, just make sure it falls within the range of `0` to `4294967295`.
+
+The `notification` key represents the payload we'll send to Apple. The `custom` key must be
+present if you intend to send custom data. Note however, that `custom` will be removed, and the
+items you place in its hash will be substituted in with the payload when the message is passed
+to Apple. As such, if you want a custom key -> value pair of: `"foo" => "bar"`, you would ensure
+you have: `:custom => { "foo" => "bar" }` in the notification. Your application should just look
+for "foo" in the payload delivered to the app.
+
+Finally, the ```device_token``` is a binary encoded representation of your devices token. Your
+app gets it in hex, please ensure you convert it to binary before sending it to beanstalk.
+
+TODO: Document new way of handling scheduling notifications in the future. Abstract beanstalk
+away from users of the library, give them a proper client interface to use instead.
+
+## Installation
+
+Racoon is hosted on [rubygems](https://rubygems.org/gems/racoon)
+
+<pre>
+$ gem install racoon
+</pre>
+
+Adding racoon to your Rails application
+
+```ruby
+gem 'racoon'
+```
+
+## License
+
+(The MIT License)
+
+Copyright (c) 2011 Jeremy Tregunna
+Copyright (c) 2011 Ben Poweski
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+'Software'), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+

@@ -1,0 +1,4 @@
+# Racoon Firehose
+
+This component sits at the end of the pipeline. Its job is to pull notifications (as they are to be
+sent to apple) in from all the workers, and fire the message off to Apple.

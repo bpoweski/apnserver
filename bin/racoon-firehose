@@ -1,0 +1,83 @@
+#!/usr/bin/env ruby
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
+
+require 'getoptlong'
+require 'rubygems'
+require 'daemons'
+require 'racoon'
+require 'csv'
+require 'yaml'
+require 'zmqmachine'
+
+def usage
+  puts "Usage: racoon-firehose [switches]"
+  puts " --pid </var/run/racoon-firehose.pid>   the path to store the pid"
+  puts " --log </var/log/racoon-firehosed.log>  the path to store the log"
+  puts " --daemon                               to daemonize the server"
+  puts " --help                                 this message"
+end
+
+def daemonize
+  Daemonize.daemonize(@log_file, 'racoon-firehose')
+  open(@pid_file,"w") { |f| f.write(Process.pid) }
+  open(@pid_file,"w") do |f|
+    f.write(Process.pid)
+    File.chmod(0644, @pid_file)
+  end
+end
+
+opts = GetoptLong.new(
+  ["--pid", "-i", GetoptLong::REQUIRED_ARGUMENT],
+  ["--log", "-l", GetoptLong::REQUIRED_ARGUMENT],
+  ["--help", "-h", GetoptLong::NO_ARGUMENT],
+  ["--daemon", "-d", GetoptLong::NO_ARGUMENT]
+)
+
+@pid_file = '/var/run/racoon-firehose.pid'
+@log_file = '/var/log/racoon-firehose.log'
+daemon = false
+
+opts.each do |opt, arg|
+  case opt
+  when '--help'
+    usage
+    exit 1
+  when '--pid'
+    @pid_file = arg
+  when '--log'
+    @log_file = arg
+  when '--daemon'
+    daemon = true
+  end
+end
+
+Racoon::Config.logger = Logger.new(@log_file)
+
+if daemon
+  daemonize
+else
+  puts "Starting racoon firehose."
+end
+
+ZM::Reactor.new(:firehose).run do |context|
+  firehose = Racoon::Firehose.new(context) do |feedback_record|
+    Racoon::Config.logger.info "[Feedback] Time: #{feedback_record[:feedback_at]} Device: #{feedback_record[:device_token]} Length: #{feedback_record[:length]}"
+  end
+  context.pull_socket(firehose)
+
+  context.periodical_timer(28800) do
+    firehose.connections.each_pair do |key, data|
+      begin
+        project = data[:project]
+        uri = "gateway.#{project[:sandbox] ? 'sandbox.' : ''}push.apple.com"
+        feedback = Racoon::APNS::FeedbackConnection.new(data[:certificate], uri)
+        feedback.connect!
+        feedback.read.each do |record|
+          @feedback_callback.call(record) if @feedback_callback
+        end
+      rescue Errno::EPIPE, OpenSSL::SSL::SSLError, Errno::ECONNRESET
+        feedback.disconnect!
+      end
+    end
+  end
+end.join

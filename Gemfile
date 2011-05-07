@@ -1,9 +1,11 @@
 source "http://rubygems.org"
 
-gem "eventmachine"
 gem "daemons"
-gem "activesupport", ">= 3.0.0"
-gem "i18n"                      # active support whines without this
+gem "yajl-ruby"
+gem "beanstalk-client"
+gem "ffi"
+gem "ffi-rzmq"
+gem "zmqmachine", :git => "git://github.com/jeremytregunna/zmqmachine.git"
 
 group :spec do
   gem "rspec"
